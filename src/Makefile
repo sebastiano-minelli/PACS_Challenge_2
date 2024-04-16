@@ -1,5 +1,5 @@
 ### change PACS_EXAMPLES_PATH pasting your machine path to 'pacs-examples/' git folder
-PACS_EXAMPLES_PATH=../../../../pacs-examples
+PACS_EXAMPLES_PATH=${PACS_ROOT}
 
 CXX      ?= g++
 CXXFLAGS ?= -std=c++20
