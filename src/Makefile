@@ -3,17 +3,16 @@ PACS_EXAMPLES_PATH=${PACS_ROOT}
 
 CXX      ?= g++
 CXXFLAGS ?= -std=c++20
-CPPFLAGS ?= -O3 -Wall -I. -I../lib -Wno-conversion-null -Wno-deprecated-declarations -I$(PACS_EXAMPLES_PATH)/Examples/include/muparserx
+CPPFLAGS ?= -O0 -Wall -I. -I../lib -Wno-conversion-null -Wno-deprecated-declarations
 
 EXEC = main
 OBJECT = main.cpp
-STATIC_LIB = $(PACS_EXAMPLES_PATH)/Examples/lib/libmuparserx.a
 COMP = main.o
 
 .PHONY = clean distclean
 
 EXECUTE: COMPILE
-	$(CXX) $(CXXFLAGS) $(COMP) $(STATIC_LIB) -o $(EXEC)
+	$(CXX) $(CXXFLAGS) $(COMP) -o $(EXEC)
 	
 COMPILE:
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) $(OBJECT) -c

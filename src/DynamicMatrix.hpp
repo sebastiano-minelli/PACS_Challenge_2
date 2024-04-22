@@ -1,14 +1,30 @@
 #ifndef HH_DYNAMIC_MATRIX_HH
 #define HH_DYNAMIC_MATRIX_HH
 
+#include <iostream>
 namespace algebra
 {
-template<typename T, StorageOrder Order = StorageOrder::ROW_WISE>
-class Matrix
+// Storage order enumerator
+enum StorageOrder
 {
-public:
-    Matrix(size_t nrows = 0, size_t ncols = 0) : n_rows(nrows), n_cols(ncols) {}
+    ROW_WISE,
+    COLUMN_WISE
+};
 
+inline constexpr std::size_t DIM = 2; // Dimension of the tuple that describes a matrix element
+
+template<typename T, StorageOrder Order = StorageOrder::ROW_WISE>
+class DynamicMatrix
+{
+
+private:
+    size_t n_rows; // numer of rows
+    size_t n_cols; // number of columns
+    std::map<std::array<std::size_T, DIM>, T> elements; // elements
+
+public:
+    // leave to the compiler the default construtors
+    
     T& operator()(const std::size_t i, const std::size_t j)
     {
         if (!(i < n_rows && j < n_cols))
@@ -64,16 +80,12 @@ public:
     size_t cols() const { return n_cols; }
 
     template<typename U>
-    friend std::ostream& operator<<(std::ostream& os, const Matrix<U, Order>& A);
+    friend std::ostream& operator<<(std::ostream& os, const DynamicMatrix<U, Order>& A);
 
-private:
-    size_t n_rows;
-    size_t n_cols;
-    std::map<std::array<std::size_t, 2>, T, std::less<std::array<std::size_t, 2>>> map;
-};
+}; // end of class DynamicMatrix
 
 template<typename T, StorageOrder Order>
-std::ostream& operator<<(std::ostream& os, const Matrix<T, Order>& A)
+std::ostream& operator<<(std::ostream& os, const DynamicMatrix<T, Order>& A)
 {
     for (size_t i = 0; i < A.rows(); ++i)
     {
