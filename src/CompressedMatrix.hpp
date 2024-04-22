@@ -36,7 +36,7 @@ public:
     {};
 
     // call operator (non const version)
-    T operator()(const std::size_t i, const std::size_t j)
+    T& operator()(const std::size_t i, const std::size_t j)
     {
         if constexpr (Order == StorageOrder::ROW_WISE)
         {
@@ -52,7 +52,7 @@ public:
                 for (std::size_t k = row_start; k < row_end; ++k) 
                     if(outer_indexes[k] == j)
                         return values[k];
-                return static_cast<T>(0.0);
+                throw std::out_of_range("Cannot assign to an invalid index");
             }
         }
         else // if Order == StorageOrder::COLUMN_WISE
@@ -69,7 +69,7 @@ public:
                 for (std::size_t k = col_start; k < col_end; ++k) 
                     if(outer_indexes[k] == i)
                         return values[k];
-                return static_cast<T>(0.0);
+                throw std::out_of_range("Cannot assign to an invalid index");
             }
         }
     }
@@ -112,50 +112,6 @@ public:
             }
         }
     }
-
-    /*
-    void set(std::size_t i, std::size_t j, T value)
-    {
-        if constexpr (Order == StorageOrder::ROW_WISE)
-        {
-            auto outer = get_outer_index(i, j);
-            auto inner_begin = inner_indexes.begin() + i;
-            auto inner_end = inner_indexes.begin() + i + 1;
-
-            auto iter = std::lower_bound(inner_begin, inner_end, outer);
-
-            if (iter != inner_end && *iter == outer)
-            {
-                values[std::distance(inner_indexes.begin(), iter)] += value;
-            }
-            else
-            {
-                inner_indexes.insert(iter, outer);
-                outer_indexes.push_back(j);
-                values.push_back(value);
-            }
-        }
-        else
-        {
-            auto inner = get_inner_index(i, j);
-            auto outer_begin = outer_indexes.begin() + inner;
-            auto outer_end = outer_indexes.begin() + inner + 1;
-
-            auto iter = std::lower_bound(outer_begin, outer_end, i);
-
-            if (iter != outer_end && *iter == i)
-            {
-                values[std::distance(outer_indexes.begin(), iter)] += value;
-            }
-            else
-            {
-                outer_indexes.insert(iter, i);
-                inner_indexes[j]++;
-                values.insert(values.begin() + inner, value);
-            }
-        }
-    }
-    */
 
 };
 
