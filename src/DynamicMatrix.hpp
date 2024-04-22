@@ -33,7 +33,7 @@ public:
     {};
     
     // call operator (non const version)
-    T& operator()(const std::size_t i, const std::size_t j) override
+    T& operator()(const std::size_t i, const std::size_t j)
     {
         if(i >= MatrixBase<T>::n_rows || j >= MatrixBase<T>::n_cols)
             throw std::out_of_range("Invalid coordinates");
@@ -52,7 +52,7 @@ public:
     }
 
     // call operator (const version)
-    const T operator()(const std::size_t i, const std::size_t j) const override
+    const T operator()(const std::size_t i, const std::size_t j) const
     {
         if(i >= MatrixBase<T>::n_rows || j >= MatrixBase<T>::n_cols)
             throw std::out_of_range("Invalid coordinates");

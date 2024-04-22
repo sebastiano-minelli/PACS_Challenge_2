@@ -4,8 +4,8 @@
 
 int main()
 {
-    std::size_t n_rows = static_cast<std::size_t>(2); // numer of rows
-    std::size_t n_cols = static_cast<std::size_t>(2); // number of columns
+    std::size_t n_rows = static_cast<std::size_t>(3); // numer of rows
+    std::size_t n_cols = static_cast<std::size_t>(3); // number of columns
     std::map<std::array<std::size_t, 2>, double> elements; // elements
 
     constexpr algebra::StorageOrder order = algebra::ROW_WISE;

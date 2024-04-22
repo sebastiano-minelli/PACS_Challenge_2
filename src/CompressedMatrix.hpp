@@ -37,7 +37,7 @@ public:
     {};
 
     // call operator (non const version)
-    T& operator()(const std::size_t i, const std::size_t j) override
+    T& operator()(const std::size_t i, const std::size_t j)
     {
         if constexpr (Order == StorageOrder::ROW_WISE)
         {
@@ -76,7 +76,7 @@ public:
     }
 
     // call operator (const version)
-    const T operator()(const std::size_t i, const std::size_t j) const override
+    const T operator()(const std::size_t i, const std::size_t j) const
     {
         if constexpr (Order == StorageOrder::ROW_WISE)
         {
