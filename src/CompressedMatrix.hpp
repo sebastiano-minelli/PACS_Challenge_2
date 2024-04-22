@@ -40,7 +40,7 @@ public:
     {
         if constexpr (Order == StorageOrder::ROW_WISE)
         {
-            if (i < 0 || i >= n_rows || j < 0 || j >= n_cols) 
+            if (i >= n_rows || j >= n_cols) 
                 throw std::out_of_range("Invalid coordinates");
             else
             {
@@ -57,7 +57,7 @@ public:
         }
         else // if Order == StorageOrder::COLUMN_WISE
         {
-            if (i < 0 || i >= n_rows || j < 0 || j >= n_cols) 
+            if (i >= n_rows || j >= n_cols) 
                 throw std::out_of_range("Invalid coordinates");
             else
             {
@@ -79,7 +79,7 @@ public:
     {
         if constexpr (Order == StorageOrder::ROW_WISE)
         {
-            if (i < 0 || i >= n_rows || j < 0 || j >= n_cols) 
+            if (i >= n_rows || j >= n_cols) 
                 throw std::out_of_range("Invalid coordinates");
             else
             {
@@ -96,7 +96,7 @@ public:
         }
         else // if Order == StorageOrder::COLUMN_WISE
         {
-            if (i < 0 || i >= n_rows || j < 0 || j >= n_cols) 
+            if (i >= n_rows || j >= n_cols) 
                 throw std::out_of_range("Invalid coordinates");
             else
             {
@@ -112,6 +112,10 @@ public:
             }
         }
     }
+
+    const std::size_t rows() const { return n_rows; }
+
+    const std::size_t columns() const { return n_cols; }    
 
 };
 
