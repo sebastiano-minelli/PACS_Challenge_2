@@ -4,7 +4,7 @@
 #include<iostream>
 namespace algebra
 {
-    // Storage order enumerator
+// Storage order enumerator
 enum StorageOrder
 {
     ROW_WISE,
