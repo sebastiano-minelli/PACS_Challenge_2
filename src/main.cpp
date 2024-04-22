@@ -1,8 +1,5 @@
 #include <iostream>
 #include "DynamicMatrix.hpp"
-#include <iostream>
-#include<map>
-#include<array>
 
 int main()
 {

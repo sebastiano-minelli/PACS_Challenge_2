@@ -2,6 +2,8 @@
 #define HH_DYNAMIC_MATRIX_HH
 
 #include <iostream>
+#include<map>
+#include<array>
 namespace algebra
 {
 // Storage order enumerator
@@ -25,31 +27,22 @@ private:
 public:
     // leave to the compiler the default construtors
     
+    // call operator (non const version)
     T& operator()(const std::size_t i, const std::size_t j)
     {
-        if (!(i < n_rows && j < n_cols))
+        if (i > n_rows || j > n_cols)
             throw std::out_of_range("Matrix access: invalid coordinates");
 
-        if constexpr (Order == StorageOrder::ROW_WISE)
-        {
-            auto iter = map.find(std::array<std::size_t, 2>{i, j});
+    
+        auto iter = elements.find({i, j});
 
-            if (iter == map.end())
-                return map.emplace(std::make_pair(std::array<std::size_t, 2>{i, j}, T{})).first->second;
+        if (iter == map.end())
+            return static_cast<typedef T>(0.0);
 
-            return iter->second;
-        }
-        else
-        {
-            auto iter = map.find(std::array<std::size_t, 2>{j, i});
-
-            if (iter == map.end())
-                return map.emplace(std::make_pair(std::array<std::size_t, 2>{j, i}, T{})).first->second;
-
-            return iter->second;
-        }
+        return iter->second;
     }
 
+    // call operator (const version)
     const T& operator()(const std::size_t i, const std::size_t j) const
     {
         if (!(i < n_rows && j < n_cols))
@@ -57,22 +50,12 @@ public:
 
         if constexpr (Order == StorageOrder::ROW_WISE)
         {
-            auto iter = map.find(std::array<std::size_t, 2>{i, j});
+            auto iter = map.find({i, j});
+        
+        if (iter == map.end())
+            return static_cast<typedef T>(0.0);
 
-            if (iter == map.end())
-                return T{};
-
-            return iter->second;
-        }
-        else
-        {
-            auto iter = map.find(std::array<std::size_t, 2>{j, i});
-
-            if (iter == map.end())
-                return T{};
-
-            return iter->second;
-        }
+        return iter->second;
     }
 
     size_t rows() const { return n_rows; }
