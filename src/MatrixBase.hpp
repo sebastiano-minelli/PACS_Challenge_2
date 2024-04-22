@@ -3,12 +3,12 @@
 
 namespace algebra
 {
-    enum StoragePolicySwitch
+    enum StorageOrder
     {
-    ROWMAJOR,
-    COLUMNMAJOR
+        ROW_WISE,
+        COLUMN_WISE
     };
-    
+
     template <typename T, StorageOrder Order>
     class Matrix
     {
