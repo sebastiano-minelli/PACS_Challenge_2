@@ -7,7 +7,7 @@
 #include<array>
 namespace algebra
 {
-template<typename T, StorageOrder Order>
+template<typename T>
 class DynamicMatrix
 {
 
