@@ -2,35 +2,40 @@
 #define HH_DYNAMIC_MATRIX_HH
 
 #include "MatrixTraits.hpp"
+#include "MatrixBase.hpp"
 #include <iostream>
 #include<map>
 #include<array>
 namespace algebra
 {
 template<typename T>
-class DynamicMatrix
+class DynamicMatrix : public MatrixBase<T>
 {
 
 using elements_type = std::map<std::array<std::size_t, DIM>, T>; // just to ease notation
 
 private:
-    size_t n_rows = 0; // number of rows
-    size_t n_cols = 0; // number of columns
-    std::map<std::array<std::size_t, DIM>, T> elements; // elements
+    std::map<std::array<std::size_t, DIM>, T> elements{}; // elements
 
 public:
     // leave to the compiler the default construtors
     DynamicMatrix() = default;
 
+    DynamicMatrix(const std::size_t nrows, const std::size_t ncols)
+    : MatrixBase<T>(nrows, ncols)
+    {};
+
     // copy/move constructor
     DynamicMatrix(const std::size_t nrows, const std::size_t ncols, elements_type && elements_)
-    : n_rows(nrows), n_cols(ncols), elements(std::forward<elements_type>(elements_)) 
+    : 
+    MatrixBase<T>(nrows, ncols), 
+    elements(std::forward<elements_type>(elements_)) 
     {};
     
     // call operator (non const version)
-    T& operator()(const std::size_t i, const std::size_t j)
+    T& operator()(const std::size_t i, const std::size_t j) override
     {
-        if(i > n_rows || j > n_cols)
+        if(i >= MatrixBase<T>::n_rows || j >= MatrixBase<T>::n_cols)
             throw std::out_of_range("Invalid coordinates");
 
     
@@ -47,9 +52,9 @@ public:
     }
 
     // call operator (const version)
-    const T operator()(const std::size_t i, const std::size_t j) const
+    const T operator()(const std::size_t i, const std::size_t j) const override
     {
-        if(i > n_rows || j > n_cols)
+        if(i >= MatrixBase<T>::n_rows || j >= MatrixBase<T>::n_cols)
             throw std::out_of_range("Invalid coordinates");
 
         auto iter = elements.find({i, j});
@@ -59,10 +64,6 @@ public:
 
         return iter->second;
     }
-
-    const std::size_t rows() const { return n_rows; }
-
-    const std::size_t columns() const { return n_cols; }
 
 }; // end of class DynamicMatrix
 
