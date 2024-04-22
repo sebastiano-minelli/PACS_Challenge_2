@@ -28,7 +28,7 @@ public:
     {};
     
     // call operator (non const version)
-    T operator()(const std::size_t i, const std::size_t j)
+    T& operator()(const std::size_t i, const std::size_t j)
     {
         if(i > n_rows || j > n_cols)
             throw std::out_of_range("Invalid coordinates");
@@ -36,9 +36,12 @@ public:
     
         auto iter = elements.find({i, j});
 
-        if(iter == elements.end())
-            return static_cast<T>(0.0);
-
+        if(iter == elements.end()) // allows to add a new element of type T
+        {
+            std::array<std::size_t, DIM> index{i, j};
+            auto pair = elements.emplace(std::make_pair(index, T{}));
+            iter = pair.first;
+        }
         return iter->second;
     }
 
