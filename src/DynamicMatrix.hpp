@@ -14,7 +14,7 @@ class DynamicMatrix
 using elements_type = std::map<std::array<std::size_t, DIM>, T>; // just to ease notation
 
 private:
-    size_t n_rows = 0; // numer of rows
+    size_t n_rows = 0; // number of rows
     size_t n_cols = 0; // number of columns
     std::map<std::array<std::size_t, DIM>, T> elements; // elements
 
@@ -28,7 +28,7 @@ public:
     {};
     
     // call operator (non const version)
-    T& operator()(const std::size_t i, const std::size_t j)
+    T operator()(const std::size_t i, const std::size_t j)
     {
         if(i > n_rows || j > n_cols)
             throw std::out_of_range("Invalid coordinates");
@@ -43,7 +43,7 @@ public:
     }
 
     // call operator (const version)
-    const T& operator()(const std::size_t i, const std::size_t j) const
+    const T operator()(const std::size_t i, const std::size_t j) const
     {
         if(i > n_rows || j > n_cols)
             throw std::out_of_range("Invalid coordinates");
