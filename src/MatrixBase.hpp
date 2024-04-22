@@ -232,6 +232,13 @@ namespace algebra
 
             Matrix<std::common_type_t<T, U>, Order> C(A.rows(), 1);
         }
+
+    private:
+        std::size_t n_rows;
+        std::size_t n_cols;
+        bool is_compressed;
+        CompressedMatrix<T, Order> ComprMat;
+        UncompressedMatrix<T, Order> UncomprMat;
     }; // end of class Matrix
 } // end namespace algebra
 #endif
