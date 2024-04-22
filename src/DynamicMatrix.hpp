@@ -40,7 +40,8 @@ public:
         {
             std::array<std::size_t, DIM> index{i, j};
             auto pair = elements.emplace(std::make_pair(index, T{})); // create a default element of type T at place (i, j)
-            iter = pair.first;
+            iter = pair.first; // pair returns a std::pair with first element the std::map and second 
+                                // element a bool to accounts for possible problems during emplace() call
         }
         return iter->second;
     }
