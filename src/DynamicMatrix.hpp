@@ -39,7 +39,7 @@ public:
         if(iter == elements.end()) // allows to add a new element of type T
         {
             std::array<std::size_t, DIM> index{i, j};
-            auto pair = elements.emplace(std::make_pair(index, T{}));
+            auto pair = elements.emplace(std::make_pair(index, T{})); // create a default element of type T at place (i, j)
             iter = pair.first;
         }
         return iter->second;
