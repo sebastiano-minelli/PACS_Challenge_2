@@ -1,5 +1,6 @@
 #include <iostream>
 #include "DynamicMatrix.hpp"
+#include "CompressedMatrix.hpp"
 
 int main()
 {
@@ -16,15 +17,17 @@ int main()
     elements[{1, 2}] = 6.0;
     elements[{2, 0}] = 7.0;
     elements[{2, 1}] = 8.0;
-    elements[{2, 2}] = 9.0;
 
     algebra::DynamicMatrix<double, order> mat(n_rows, n_cols, std::move(elements));
 
     std::cout << "columns: " << mat.columns() << std::endl;
     std::cout << "rows: " << mat.rows() << std::endl;
     std::cout << "element: " << mat(0, 2) << std::endl;
-    std::cout << "element: " << mat(1, 1) << std::endl;
-    std::cout << "element: " << mat(3, 1) << std::endl;
+    mat(0, 2) = 10.0;
+    std::cout << "modified element: " << mat(0, 2) << std::endl;
+    std::cout << "Non existing element: " << mat(1, 1) << std::endl;
+    mat(2, 2) = 9.0;
+    std::cout << "Created non existing element " << mat(2, 2) << std::endl;
 
     return 0;
 }
