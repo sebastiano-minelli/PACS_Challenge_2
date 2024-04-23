@@ -52,6 +52,20 @@ public:
         return iter->second;
     }
 
+    void resize(const std::size_t nrows, const std::size_t ncols)
+    {
+        elements_type new_elements;
+
+        auto in_range = [nrows&, ncols&](const auto& element)
+        {
+            return element.first[0] < nrows && element.first[1] < ncols;
+        };
+
+        std::copy_if(elements.rbegin(), elements.rend(), std::inserter(new_elements, new_elements.end()), in_range);
+
+        elements = std::move(new_elements);
+    }
+
     // this method clears the stored matrix, it is needed to efficiently convert from dynamic to compress matrix
     void clear()
     {
