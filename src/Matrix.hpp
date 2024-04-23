@@ -104,11 +104,12 @@ public:
             // store row indexes inside inner_indexes
             compressed_mat.inner_indexes.push_back(0); // first element is always 0
             
+            std::size_t distance;
             for(std::size_t i = first_row; i <= last_row; ++i)
             {
                 auto low_bound = dynamic_mat.elements.lower_bound({i, 0});
                 auto up_bound = dynamic_mat.elements.upper_bound({i + 1, 0});
-                auto distance = std::ranges::distance(low_bound, up_bound); // computing how many elements there are in a row
+                distance += std::ranges::distance(low_bound, up_bound); // computing how many elements there are in a row
                 compressed_mat.inner_indexes.push_back(distance);
             }           
 
@@ -170,7 +171,7 @@ public:
             {
                 for(std::size_t j = 0; j < compressed_mat.inner_indexes[i + 1] - compressed_mat.inner_indexes[i]; ++j)
                 {
-                    dynamic_mat.insert(std::make_pair(std::array<std::size_t, DIM>{i, *outer_it}, *value_it));
+                    dynamic_mat.elements.insert(std::make_pair(std::array<std::size_t, DIM>{i, *outer_it}, *value_it));
                     ++outer_it;
                     ++value_it;
                 }
@@ -230,10 +231,10 @@ public:
 
             if constexpr (Order == StorageOrder::ROW_WISE)
             {                           
-                for(std::size_t i = 0; i < inner_index_dim; ++i)
+                for(std::size_t i = 0; i < inner_index_dim - 1; ++i)
                 {
                     for(std::size_t j = 0; j < mat.compressed_mat.inner_indexes[i + 1] - mat.compressed_mat.inner_indexes[i]; ++j)
-                    {    
+                    {
                         result[i] += (*value_it) * v[(*outer_it)];
                         ++value_it;
                         ++outer_it;
@@ -258,6 +259,7 @@ public:
             for(auto & element : mat.dynamic_mat.elements)
                 result[element.first[0]] += element.second * v[element.first[1]];                
         }
+
         return result;
     }
 

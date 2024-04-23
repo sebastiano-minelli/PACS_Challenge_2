@@ -18,6 +18,8 @@ int main()
     std::cout << "Compressed state: " << m_row.is_compressed() << std::endl;
     m_row.compress();
     std::cout << "Compressed state: " << m_row.is_compressed() << std::endl;
+    m_row.uncompress();
+    std::cout << "Compressed state: " << m_row.is_compressed() << std::endl;
 
     std::vector<double> x = {2.0, 0.0, 1.0};
     std::vector<double> y = m_row * x;
