@@ -153,29 +153,36 @@ public:
     void uncompress()
     {
         if (!is_compressed())
-            return ;
+            return;
+        // else
+
+        // Clear the current dynamic matrix data (just to be shure)
+        dynamic_mat.clear();
+
+        const auto outer_it = compressed_mat.outer_indexes.cbegin();
+        const auto value_it = compressed_mat.values.cbegin();
 
         if constexpr (Order == StorageOrder::ROW_WISE)
         {
-            row_map.reserve(n_rows * n_cols);
-
-            for (std::size_t i = 0; i < n_rows; ++i)
+            for(std::size_t i = 0; i < compressed_mat.inner_indexes.size(); ++i)
             {
-                for (std::size_t j = 0; j < n_cols; ++j)
+                for(std::size_t j = 0; j < compressed_mat.inner_indexes[i]; ++j)
                 {
-                    row_map.emplace_back(std::make_pair(std::array<std::size_t, 2>{i, j}, T{}));
+                    dynamic_mat.insert(std::make_pair(std::array<std::size_t, DIM>{i, *outer_it}, *value_it));
+                    ++outer_it;
+                    ++value_it;
                 }
             }
         }
-        else
+        else // if Order == StorageOrder::COLUMN_WISE
         {
-            col_map.reserve(n_rows * n_cols);
-
-            for (std::size_t i = 0; i < n_rows; ++i)
+            for(std::size_t j = 0; j < compressed_mat.inner_indexes.size(); ++j)
             {
-                for (std::size_t j = 0; j < n_cols; ++j)
+                for(std::size_t i = 0; i < compressed_mat.inner_indexes[j]; ++i)
                 {
-                    col_map.emplace_back(std::make_pair(std::array<std::size_t, 2>{i, j}, T{}));
+                    dynamic_mat.insert(std::make_pair(std::array<std::size_t, DIM>{*outer_it, j}, *value_it));
+                    ++outer_it;
+                    ++value_it;
                 }
             }
         }
