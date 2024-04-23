@@ -57,7 +57,8 @@ public:
             std::cout << "Attention: the matrix will be leaved in an uncompressed state" << std::endl;
             n_rows = nrows;
             n_cols = ncols;
-            this->uncompress(); // uncompress takes care of adding or deleting elements
+            this->uncompress();
+            dynamic_mat.resize(n_rows, n_cols);
         }
     }
 
@@ -186,6 +187,12 @@ public:
                 }
             }
         }
+
+        // Change compressed state
+        is_compressed = false;
+
+        // Clear the compress matrix data
+        compressed_mat.clear();
     }
 
     T& operator()(const std::size_t i, const std::size_t j)
