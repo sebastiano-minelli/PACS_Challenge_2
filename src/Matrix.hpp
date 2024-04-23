@@ -138,10 +138,10 @@ public:
         }
 
         // move elements from the map to the compressed matrix
-            std::ranges::transform(dynamic_mat.elements.begin(),
-                                dynamic_mat.elements.end(), 
-                                std::back_inserter(compressed_mat.values), 
-                                [](auto& pair) { return std::move(pair->second); });        
+        std::ranges::transform(dynamic_mat.elements.begin(),
+                            dynamic_mat.elements.end(), 
+                            std::back_inserter(compressed_mat.values), 
+                            [](auto& pair) { return std::move(pair->second); });        
 
         // Change compressed state
         is_compressed = true;
@@ -167,7 +167,7 @@ public:
         {
             for(std::size_t i = 0; i < compressed_mat.inner_indexes.size(); ++i)
             {
-                for(std::size_t j = 0; j < compressed_mat.inner_indexes[i]; ++j)
+                for(std::size_t j = 0; j < compressed_mat.inner_indexes[i + 1] - compressed_mat.inner_indexes[i]; ++j)
                 {
                     dynamic_mat.insert(std::make_pair(std::array<std::size_t, DIM>{i, *outer_it}, *value_it));
                     ++outer_it;
@@ -179,7 +179,7 @@ public:
         {
             for(std::size_t j = 0; j < compressed_mat.inner_indexes.size(); ++j)
             {
-                for(std::size_t i = 0; i < compressed_mat.inner_indexes[j]; ++i)
+                for(std::size_t i = 0; i < compressed_mat.inner_indexes[j + 1] - compressed_mat.inner_indexes[j]; ++i)
                 {
                     dynamic_mat.insert(std::make_pair(std::array<std::size_t, DIM>{*outer_it, j}, *value_it));
                     ++outer_it;
@@ -220,6 +220,53 @@ public:
             throw std::invalid_argument("Matrix-vector multiplication: invalid dimensions");
 
         Matrix<std::common_type_t<T, U>, Order> C(A.rows(), 1);
+    }
+
+    friend std::vector<T> operator*(Matrix& mat, std::vector<T> & v)
+    {
+        if(mat.n_cols != v.size())
+            throw std::invalid_argument("Matrix-vector multiplication: invalid dimensions");
+        //else
+        const auto dim = mat.n_rows;
+        std::vector<T> result{dim}; // initialized to T{}
+
+        if(mat.is_compressed)
+        {
+            const auto value_it = mat.compressed_mat.values.cbegin();
+            const auto inner_index_dim = mat.compressed_mat.inner_indexes.size();
+            const auto outer_it = mat.compressed_mat.outer_indexes.cbegin();
+
+            if constexpr (mat.Order == StorageOrder::ROW_WISE)
+            {                           
+                for(std::size_t i = 0; i < inner_index_dim; ++i)
+                {
+                    for(std::size_t j = 0; j < mat.compressed_mat.inner_indexes[i + 1] - mat.compressed_mat.inner_indexes[i]; ++j)
+                    {    
+                        result[i] += (*value_it) * v[(*outer_it)];
+                        ++value_it;
+                        ++outer_it;
+                    }
+                }
+            }
+            else // if mat.Order == StorageOrder::COLUMN_WISE
+            {
+                for(std::size_t i = 0; i < inner_index_dim; ++i)
+                {
+                    for(std::size_t j = 0; j < mat.compressed_mat.inner_indexes[i + 1] - mat.compressed_mat.inner_indexes[i]; ++j)
+                    {    
+                        result[*outer_it] += (*value_it) * v[i];
+                        ++value_it;
+                        ++outer_it;
+                    }
+                }
+            }
+        }
+        else // if mat.is_compressed = false
+        {
+            for(auto & element : mat.dynamic_mat.elements)
+                result[element.first[0]] += element.second * v[element.first[1]];                
+        }
+        return result;
     }
 
 }; // end of class Matrix
