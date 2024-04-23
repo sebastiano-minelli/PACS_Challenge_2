@@ -13,10 +13,10 @@ class DynamicMatrix
 
 using elements_type = std::map<std::array<std::size_t, DIM>, T>; // just to ease notation
 
-private:
+public:
     elements_type elements{}; // elements
 
-public:
+    ////// METHODS /////////
     // leave to the compiler the default construtors
     DynamicMatrix() = default;
     

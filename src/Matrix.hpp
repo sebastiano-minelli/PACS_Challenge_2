@@ -82,7 +82,7 @@ public:
         // Clear the current compressed matrix data (just to be shure)
         compressed_mat.clear();
 
-        compressed_mat.values.reserve(dynamic_mat.size()); // reserving space
+        compressed_mat.values.reserve(dynamic_mat.elements.size()); // reserving space
 
         const auto first_row = dynamic_mat.elements.cbegin()->first[0];
         const auto last_row = dynamic_mat.elements.crbegin()->first[0];
@@ -93,13 +93,13 @@ public:
         {
             // reserve space
             compressed_mat.inner_indexes.reserve(last_row - first_row + 2); 
-            compressed_mat.outer_indexes.reserve(dynamic_mat.size());
+            compressed_mat.outer_indexes.reserve(dynamic_mat.elements.size());
 
             // store all column indexes inside outer_indexes
             std::transform(dynamic_mat.elements.cbegin(),
                                 dynamic_mat.elements.cend(), 
                                 std::back_inserter(compressed_mat.outer_indexes), 
-                                [](auto& pair) { return pair->first[1]; });
+                                [](auto& pair) { return pair.first[1]; });
 
             // store row indexes inside inner_indexes
             compressed_mat.inner_indexes.push_back(0); // first element is always 0
@@ -117,13 +117,13 @@ public:
         {
             // reserve space
             compressed_mat.inner_indexes.reserve(last_col - first_col + 2); 
-            compressed_mat.outer_indexes.reserve(dynamic_mat.size());
+            compressed_mat.outer_indexes.reserve(dynamic_mat.elements.size());
 
             // store all row indexes inside outer_indexes
             std::transform(dynamic_mat.elements.cbegin(),
                                 dynamic_mat.elements.cend(), 
                                 std::back_inserter(compressed_mat.outer_indexes), 
-                                [](auto& pair) { return pair->first[0]; });
+                                [](auto& pair) { return pair.first[0]; });
 
             // store column indexes inside inner_indexes
             compressed_mat.inner_indexes.push_back(0); // first element is always 0
@@ -142,7 +142,7 @@ public:
         std::transform(dynamic_mat.elements.begin(),
                             dynamic_mat.elements.end(), 
                             std::back_inserter(compressed_mat.values), 
-                            [](auto& pair) { return std::move(pair->second); });        
+                            [](auto& pair) { return std::move(pair.second); });        
 
         // Change compressed state
         compressed = true;
@@ -161,8 +161,8 @@ public:
         // Clear the current dynamic matrix data (just to be shure)
         dynamic_mat.clear();
 
-        const auto outer_it = compressed_mat.outer_indexes.cbegin();
-        const auto value_it = compressed_mat.values.cbegin();
+        auto outer_it = compressed_mat.outer_indexes.cbegin();
+        auto value_it = compressed_mat.values.cbegin();
 
         if constexpr (Order == StorageOrder::ROW_WISE)
         {
@@ -214,21 +214,21 @@ public:
         return dynamic_mat(i, j);
     }
 
-    friend std::vector<T> operator*(Matrix& mat, std::vector<T> & v)
+    friend std::vector<T> operator*(Matrix<T, Order>& mat, std::vector<T> & v)
     {
         if(mat.n_cols != v.size())
             throw std::invalid_argument("Matrix-vector multiplication: invalid dimensions");
         //else
         const auto dim = mat.n_rows;
-        std::vector<T> result{dim}; // initialized to T{}
+        std::vector<T> result(dim); // initialized to T{}
 
         if(mat.compressed)
         {
-            const auto value_it = mat.compressed_mat.values.cbegin();
+            auto value_it = mat.compressed_mat.values.cbegin();
             const auto inner_index_dim = mat.compressed_mat.inner_indexes.size();
-            const auto outer_it = mat.compressed_mat.outer_indexes.cbegin();
+            auto outer_it = mat.compressed_mat.outer_indexes.cbegin();
 
-            if constexpr (mat.Order == StorageOrder::ROW_WISE)
+            if constexpr (Order == StorageOrder::ROW_WISE)
             {                           
                 for(std::size_t i = 0; i < inner_index_dim; ++i)
                 {
@@ -263,6 +263,11 @@ public:
 
     void parse_from_file(const std::string & filename)
     {
+        // Check that the file exists
+        std::ifstream file_check(filename);
+        if(!file_check.is_open())
+            throw std::runtime_error("Error: file not found");
+
         n_rows = 0;
         n_cols = 0;
         dynamic_mat.clear();
@@ -280,9 +285,13 @@ public:
         std::getline(file, line);
 
         // Read matrix dimensions
-        std::istringstream word(line);
-        word >> n_rows; 
-        word >> n_cols;
+        if(std::getline(file, line)) 
+        {
+            std::istringstream word(line);
+            word >> n_rows; 
+            word >> n_cols;
+            // I skip the number of non-zero elements since I don't need it to store the dynamic matrix
+        }
 
         // Read the matrix data
         while(std::getline(file, line) )
@@ -295,13 +304,14 @@ public:
             std::size_t j;
             T value;
             if (!(word >> i >> j >> value))
-            {
-                std::cerr << "Error while reading the file" << std::endl;
-            }
+                throw std::runtime_error("Error while reading the file");
 
             // Insert the element in the map
+            std::cout << "element (" << i << ", " << j << ") = " << value << std::endl;
             file_mat.insert(std::make_pair(std::array<std::size_t, DIM>{i - 1, j - 1}, value));
         }
+
+        dynamic_mat = DynamicMatrix<T>(std::move(file_mat));
     }
 
 }; // end of class Matrix

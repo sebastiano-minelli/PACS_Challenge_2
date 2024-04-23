@@ -10,13 +10,13 @@ namespace algebra
 template<typename T, StorageOrder Order>
 class CompressedMatrix
 {
-private:
+public:
+
     std::vector<std::size_t> inner_indexes{}; // vector that stores the inned indexes
     std::vector<std::size_t> outer_indexes{}; // vector that stores the outer indexes
     std::vector<T> values{}; // vector that stores the non zero values
 
-public:
-
+    ////// METHODS ///////
     CompressedMatrix() = default;
 
     CompressedMatrix(std::vector<std::size_t> && inner_indexes_,
