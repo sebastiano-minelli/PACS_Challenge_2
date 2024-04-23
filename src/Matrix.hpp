@@ -213,15 +213,6 @@ public:
         return const dynamic_mat(i, j);
     }
 
-    template <typename U>
-    friend Matrix<std::common_type_t<T, U>, Order> operator*(const Matrix<T, Order>& A, const std::vector<U>& v)
-    {
-        if (A.cols() != v.size())
-            throw std::invalid_argument("Matrix-vector multiplication: invalid dimensions");
-
-        Matrix<std::common_type_t<T, U>, Order> C(A.rows(), 1);
-    }
-
     friend std::vector<T> operator*(Matrix& mat, std::vector<T> & v)
     {
         if(mat.n_cols != v.size())
