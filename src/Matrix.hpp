@@ -1,6 +1,9 @@
 #ifndef HH_MATRIX_BASE_HH
 #define HH_MATRIX_BASE_HH
 
+#include <fstream>
+#include <sstream>
+#include <string>
 #include<memory>
 #include "DynamicMatrix.hpp"
 #include "CompressedMatrix.hpp"
@@ -258,6 +261,47 @@ public:
                 result[element.first[0]] += element.second * v[element.first[1]];                
         }
         return result;
+    }
+
+    void parse_from_file(const std::string & filename)
+    {
+        n_rows = 0;
+        n_cols = 0;
+        dynamic_mat.clear();
+        compressed_mat.clear();
+        is_compressed = false;
+
+        // Parse as a dynamic matrix
+        
+        std::map<std::array<std::size_t, DIM>, T> file_mat;
+
+        std::ifstream file(filename);
+        std::string line;
+
+        // Skip the first line (that is just a comment)
+        std::getline(file, line);
+
+        // Read matrix dimensions
+        std::istringstream word(line);
+        word >> n_rows; 
+        word >> n_cols;
+
+        // Read the matrix data
+        while(std::getline(file, line) )
+        {
+            // If the line starts with '#' we go on
+            if(!line.empty() && line[0] == '#') // unnecessary probably since there are no comments
+                continue;
+            std::istringstream word(line);
+            std::size_t i;
+            std::size_t j;
+            T value;
+            if (!(word >> row >> col >> value))
+                break; // error
+
+            // Insert the element in the map
+            file_mat.insert(std::make_pair(std::array<std::size_t, DIM>{i - 1, j - 1}, value));
+        }
     }
 
 }; // end of class Matrix
