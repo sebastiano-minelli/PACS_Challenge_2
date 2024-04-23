@@ -56,7 +56,7 @@ public:
     {
         elements_type new_elements;
 
-        auto in_range = [nrows&, ncols&](const auto& element)
+        auto in_range = [nrows, ncols](const auto& element)
         {
             return element.first[0] < nrows && element.first[1] < ncols;
         };

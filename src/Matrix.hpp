@@ -13,49 +13,47 @@ template <typename T, StorageOrder Order>
 class Matrix
 {
 private:
-    bool is_compressed = false; // true = comrpessed storing
+    bool compressed = false; // true = compressed storing
     std::size_t n_rows = static_cast<std::size_t>(0); // number of rows
     std::size_t n_cols = static_cast<std::size_t>(0); // number of columns
-    DynamicMatrix dynamic_mat{}; // dynamic matrix data
-    CompressedMatrix compressed_mat{}; // compressed matrix data
+    DynamicMatrix<T> dynamic_mat{}; // dynamic matrix data
+    CompressedMatrix<T, Order> compressed_mat{}; // compressed matrix data
 
 
 public:
+
+    Matrix() = default;
+
     // create a matrix, set it to uncompressed state (even if it is empty)
     Matrix(const std::size_t nrows, const std::size_t ncols)
-        : n_rows(nrows), n_cols(ncols)
-    {
-        DynamicMatrix{};
-        CompressedMatrix{};
-        is_compressed = false;
-    };
+    : 
+    n_rows(nrows), n_cols(ncols)
+    {};
 
     // create a matrix, set it to uncompressed state
     using elements_type = std::map<std::array<std::size_t, DIM>, T>; // just to ease notation
     Matrix(const std::size_t nrows, const std::size_t ncols, elements_type && elements_)
     : 
-    is_compressed(false),
+    compressed(false),
     n_rows(nrows), 
     n_cols(ncols), 
     dynamic_mat(std::move(elements_))
-    {
-        CompressedMatrix{};
-    };
+    {};
 
     void resize(const std::size_t nrows, const std::size_t ncols)
     {
-        if(!is_compressed && (nrows < n_rows || ncols < n_cols)) // if where have a dynamic matrix we need to call the resize() method
+        if(!compressed && (nrows < n_rows || ncols < n_cols)) // if where have a dynamic matrix we need to call the resize() method
         {
             n_rows = nrows;
             n_cols = ncols;
             dynamic_mat.resize(n_rows, n_cols);
         }
-        else if(!is_compressed) // if it is dynamic but we enlarge it no need to take out elements
+        else if(!compressed) // if it is dynamic but we enlarge it no need to take out elements
         {
             n_rows = nrows;
             n_cols = ncols;
         }
-        else // if(is_compressed)
+        else // if(compressed)
         {
             std::cout << "Attention: the matrix will be leaved in an uncompressed state" << std::endl;
             n_rows = nrows;
@@ -72,12 +70,12 @@ public:
 
     const bool is_compressed() const
     {
-        return is_compressed;
+        return compressed;
     }
 
     void compress()
     {
-        if(is_compressed)
+        if(compressed)
             return;
         //else
 
@@ -98,7 +96,7 @@ public:
             compressed_mat.outer_indexes.reserve(dynamic_mat.size());
 
             // store all column indexes inside outer_indexes
-            std::ranges::transform(dynamic_mat.elements.cbegin(),
+            std::transform(dynamic_mat.elements.cbegin(),
                                 dynamic_mat.elements.cend(), 
                                 std::back_inserter(compressed_mat.outer_indexes), 
                                 [](auto& pair) { return pair->first[1]; });
@@ -122,7 +120,7 @@ public:
             compressed_mat.outer_indexes.reserve(dynamic_mat.size());
 
             // store all row indexes inside outer_indexes
-            std::ranges::transform(dynamic_mat.elements.cbegin(),
+            std::transform(dynamic_mat.elements.cbegin(),
                                 dynamic_mat.elements.cend(), 
                                 std::back_inserter(compressed_mat.outer_indexes), 
                                 [](auto& pair) { return pair->first[0]; });
@@ -141,13 +139,13 @@ public:
         }
 
         // move elements from the map to the compressed matrix
-        std::ranges::transform(dynamic_mat.elements.begin(),
+        std::transform(dynamic_mat.elements.begin(),
                             dynamic_mat.elements.end(), 
                             std::back_inserter(compressed_mat.values), 
                             [](auto& pair) { return std::move(pair->second); });        
 
         // Change compressed state
-        is_compressed = true;
+        compressed = true;
 
         // Clear the dynamic matrix data
         dynamic_mat.clear();
@@ -156,7 +154,7 @@ public:
 
     void uncompress()
     {
-        if (!is_compressed())
+        if (!compressed)
             return;
         // else
 
@@ -192,7 +190,7 @@ public:
         }
 
         // Change compressed state
-        is_compressed = false;
+        compressed = false;
 
         // Clear the compress matrix data
         compressed_mat.clear();
@@ -202,7 +200,7 @@ public:
     {
         if (i > n_rows || j > n_cols)
             throw std::out_of_range("Matrix index out of range");
-        if(is_compressed)
+        if(compressed)
             return compressed_mat(i, j);
         return dynamic_mat(i, j);
     }
@@ -211,9 +209,9 @@ public:
     {
         if (i > n_rows || j > n_cols)
             throw std::out_of_range("Matrix index out of range");
-        if(is_compressed)
-            return const compressed_mat(i, j);
-        return const dynamic_mat(i, j);
+        if(compressed)
+            return compressed_mat(i, j);
+        return dynamic_mat(i, j);
     }
 
     friend std::vector<T> operator*(Matrix& mat, std::vector<T> & v)
@@ -224,7 +222,7 @@ public:
         const auto dim = mat.n_rows;
         std::vector<T> result{dim}; // initialized to T{}
 
-        if(mat.is_compressed)
+        if(mat.compressed)
         {
             const auto value_it = mat.compressed_mat.values.cbegin();
             const auto inner_index_dim = mat.compressed_mat.inner_indexes.size();
@@ -255,7 +253,7 @@ public:
                 }
             }
         }
-        else // if mat.is_compressed = false
+        else // if mat.compressed = false
         {
             for(auto & element : mat.dynamic_mat.elements)
                 result[element.first[0]] += element.second * v[element.first[1]];                
@@ -269,7 +267,7 @@ public:
         n_cols = 0;
         dynamic_mat.clear();
         compressed_mat.clear();
-        is_compressed = false;
+        compressed = false;
 
         // Parse as a dynamic matrix
         
@@ -289,15 +287,17 @@ public:
         // Read the matrix data
         while(std::getline(file, line) )
         {
-            // If the line starts with '#' we go on
-            if(!line.empty() && line[0] == '#') // unnecessary probably since there are no comments
+            // If the line starts with '%' we go on
+            if(!line.empty() && line[0] == '%') // unnecessary probably since there are no comments
                 continue;
             std::istringstream word(line);
             std::size_t i;
             std::size_t j;
             T value;
-            if (!(word >> row >> col >> value))
-                break; // error
+            if (!(word >> i >> j >> value))
+            {
+                std::cerr << "Error while reading the file" << std::endl;
+            }
 
             // Insert the element in the map
             file_mat.insert(std::make_pair(std::array<std::size_t, DIM>{i - 1, j - 1}, value));
