@@ -100,14 +100,11 @@ public:
             compressed_mat.inner_indexes.push_back(0); // first element is always 0
             
             std::size_t distance = static_cast<std::size_t>(0);
-            std::cout << "distance = " << distance << std::endl;
             for(std::size_t i = 0; i < n_rows; ++i)
             {
                 auto low_bound = dynamic_mat.elements.lower_bound({i, 0});
                 auto up_bound = dynamic_mat.elements.upper_bound({i, n_cols});
-                std::cout << "distance ranges: " << std::ranges::distance(low_bound, up_bound) << std::endl;
                 distance += std::ranges::distance(low_bound, up_bound); // computing how many elements there are in a row
-                std::cout << "distance = " << distance << std::endl;
                 compressed_mat.inner_indexes.push_back(distance);
             }     
 
@@ -165,7 +162,7 @@ public:
 
         if constexpr (Order == StorageOrder::ROW_WISE)
         {
-            for(std::size_t i = 0; i < compressed_mat.inner_indexes.size(); ++i)
+            for(std::size_t i = 0; i < compressed_mat.inner_indexes.size() - 1; ++i)
             {
                 for(std::size_t j = 0; j < compressed_mat.inner_indexes[i + 1] - compressed_mat.inner_indexes[i]; ++j)
                 {
@@ -177,7 +174,7 @@ public:
         }
         else // if Order == StorageOrder::COLUMN_WISE
         {
-            for(std::size_t j = 0; j < compressed_mat.inner_indexes.size(); ++j)
+            for(std::size_t j = 0; j < compressed_mat.inner_indexes.size() - 1; ++j)
             {
                 for(std::size_t i = 0; i < compressed_mat.inner_indexes[j + 1] - compressed_mat.inner_indexes[j]; ++i)
                 {
@@ -219,17 +216,16 @@ public:
             throw std::invalid_argument("Matrix-vector multiplication: invalid dimensions");
         //else
         const auto dim = mat.n_rows;
-        std::vector<T> result(dim); // initialized to T{}
+        std::vector<T> result(dim, static_cast<T>(0)); // cast dim elements to 0
 
         if(mat.compressed)
         {
             auto value_it = mat.compressed_mat.values.cbegin();
-            const auto inner_index_dim = mat.compressed_mat.inner_indexes.size();
             auto outer_it = mat.compressed_mat.outer_indexes.cbegin();
 
             if constexpr (Order == StorageOrder::ROW_WISE)
             {                           
-                for(std::size_t i = 0; i < inner_index_dim - 1; ++i)
+                for(std::size_t i = 0; i < mat.n_rows - 1; ++i)
                 {
                     for(std::size_t j = 0; j < mat.compressed_mat.inner_indexes[i + 1] - mat.compressed_mat.inner_indexes[i]; ++j)
                     {
@@ -241,7 +237,7 @@ public:
             }
             else // if mat.Order == StorageOrder::COLUMN_WISE
             {
-                for(std::size_t i = 0; i < inner_index_dim; ++i)
+                for(std::size_t i = 0; i < mat.n_cols - 1; ++i)
                 {
                     for(std::size_t j = 0; j < mat.compressed_mat.inner_indexes[i + 1] - mat.compressed_mat.inner_indexes[i]; ++j)
                     {    
@@ -252,10 +248,10 @@ public:
                 }
             }
         }
-        else // if mat.compressed = false
+        else if(!mat.compressed)
         {
-            for(auto & element : mat.dynamic_mat.elements)
-                result[element.first[0]] += element.second * v[element.first[1]];                
+            for(auto it = mat.dynamic_mat.elements.begin(); it != mat.dynamic_mat.elements.end(); ++it)
+                result[it->first[0]] += it->second * v[it->first[1]];                
         }
 
         return result;
