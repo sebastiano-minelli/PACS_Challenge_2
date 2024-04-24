@@ -4,7 +4,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
-#include<memory>
+#include <memory>
 #include "DynamicMatrix.hpp"
 #include "CompressedMatrix.hpp"
 namespace algebra
@@ -16,7 +16,7 @@ private:
     bool compressed = false; // true = compressed storing
     std::size_t n_rows = static_cast<std::size_t>(0); // number of rows
     std::size_t n_cols = static_cast<std::size_t>(0); // number of columns
-    DynamicMatrix<T> dynamic_mat{}; // dynamic matrix data
+    DynamicMatrix<T, Order> dynamic_mat{}; // dynamic matrix data
     CompressedMatrix<T, Order> compressed_mat{}; // compressed matrix data
 
 
@@ -31,7 +31,7 @@ public:
     {};
 
     // create a matrix, set it to uncompressed state
-    using elements_type = std::map<std::array<std::size_t, DIM>, T>; // just to ease notation
+    using elements_type = typename algebra::ElementsTypeSelection<T, Order>::type; // selecting the right type
     Matrix(const std::size_t nrows, const std::size_t ncols, elements_type && elements_)
     : 
     compressed(false),
@@ -100,12 +100,15 @@ public:
             compressed_mat.inner_indexes.push_back(0); // first element is always 0
             
             std::size_t distance = static_cast<std::size_t>(0);
+            std::cout << "distance = " << distance << std::endl;
             for(std::size_t i = 0; i < n_rows; ++i)
             {
                 auto low_bound = dynamic_mat.elements.lower_bound({i, 0});
-                auto up_bound = dynamic_mat.elements.upper_bound({i + 1, 0});
+                auto up_bound = dynamic_mat.elements.upper_bound({i, n_cols});
+                std::cout << "distance ranges: " << std::ranges::distance(low_bound, up_bound) << std::endl;
                 distance += std::ranges::distance(low_bound, up_bound); // computing how many elements there are in a row
-                compressed_mat.inner_indexes.push_back(distance - 1);
+                std::cout << "distance = " << distance << std::endl;
+                compressed_mat.inner_indexes.push_back(distance);
             }     
 
         }
@@ -123,13 +126,13 @@ public:
 
             // store column indexes inside inner_indexes
             compressed_mat.inner_indexes.push_back(0); // first element is always 0
-            
+            std::size_t distance = static_cast<std::size_t>(0);
             for(std::size_t i = 0; i < n_cols; ++i)
             {
                 auto low_bound = dynamic_mat.elements.lower_bound({0, i});
-                auto up_bound = dynamic_mat.elements.upper_bound({0, i + 1});
-                auto distance = std::ranges::distance(low_bound, up_bound); // computing how many elements there are in a row
-                compressed_mat.inner_indexes.push_back(distance - 1);
+                auto up_bound = dynamic_mat.elements.upper_bound({n_rows, i});
+                distance += std::ranges::distance(low_bound, up_bound); // computing how many elements there are in a row
+                compressed_mat.inner_indexes.push_back(distance);
             }
 
         }
@@ -178,7 +181,7 @@ public:
             {
                 for(std::size_t i = 0; i < compressed_mat.inner_indexes[j + 1] - compressed_mat.inner_indexes[j]; ++i)
                 {
-                    dynamic_mat.insert(std::make_pair(std::array<std::size_t, DIM>{*outer_it, j}, *value_it));
+                    dynamic_mat.elements.insert(std::make_pair(std::array<std::size_t, DIM>{*outer_it, j}, *value_it));
                     ++outer_it;
                     ++value_it;
                 }
@@ -273,7 +276,7 @@ public:
 
         // Parse as a dynamic matrix
         
-        std::map<std::array<std::size_t, DIM>, T> file_mat;
+        elements_type file_mat;
 
         std::ifstream file(filename);
         std::string line;
@@ -308,7 +311,8 @@ public:
             file_mat.insert(std::make_pair(std::array<std::size_t, DIM>{i - 1, j - 1}, value));
         }
 
-        dynamic_mat = DynamicMatrix<T>(std::move(file_mat));
+        dynamic_mat = DynamicMatrix<T, Order>(std::move(file_mat));
+        std::cout << "Number of elements: " << dynamic_mat.elements.size() << std::endl;
     }
 
 }; // end of class Matrix

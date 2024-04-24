@@ -7,17 +7,15 @@
 #include<array>
 namespace algebra
 {
-template<typename T>
+template<typename T, StorageOrder Order>
 class DynamicMatrix
 {
-
-using elements_type = std::map<std::array<std::size_t, DIM>, T>; // just to ease notation
+    
+using elements_type = typename algebra::ElementsTypeSelection<T, Order>::type; // selecting the right type
 
 public:
     elements_type elements{}; // elements
 
-    ////// METHODS /////////
-    // leave to the compiler the default construtors
     DynamicMatrix() = default;
     
     // copy/move constructor
