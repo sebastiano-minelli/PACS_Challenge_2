@@ -16,13 +16,15 @@ COMP = main.o
 
 # set compilation mode
 debug: CPPFLAGS = -g -Wall -I. -I../lib -Wno-conversion-null -Wno-deprecated-declarations
-debug: $(EXEC)
+debug: all
 
 standard: CPPFLAGS = -O0 -Wall -I. -I../lib -Wno-conversion-null -Wno-deprecated-declarations
-standard: $(EXEC)
+standard: all
 
 optimized: CPPFLAGS = -O3 -Wall -I. -I../lib -Wno-conversion-null -Wno-deprecated-declarations
-optimized: $(EXEC)
+optimized: all
+
+all: clean $(EXEC)
 
 $(EXEC): $(COMP)
 	$(CXX) $(CXXFLAGS) $(COMP) -o $(EXEC)
@@ -31,7 +33,7 @@ $(COMP): $(OBJECT)
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c $(OBJECT)
 	
 clean:
-	$(RM) *.o
+	$(RM) *.o $(EXEC)
 
 help:
 	@echo "Usage: make [TARGET]"
