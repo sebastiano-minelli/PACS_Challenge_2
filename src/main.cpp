@@ -1,7 +1,7 @@
 #include <iostream>
 #include "Matrix.hpp"
 
-int main()
+int main(int argc, char *argv[])
 {
     
     algebra::Matrix<double, algebra::StorageOrder::ROW_WISE> m_row;
