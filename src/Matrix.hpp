@@ -84,15 +84,10 @@ public:
 
         compressed_mat.values.reserve(dynamic_mat.elements.size()); // reserving space
 
-        const auto first_row = dynamic_mat.elements.cbegin()->first[0];
-        const auto last_row = dynamic_mat.elements.crbegin()->first[0];
-        const auto first_col = dynamic_mat.elements.cbegin()->first[1];
-        const auto last_col = dynamic_mat.elements.crbegin()->first[1];
-
         if constexpr (Order == StorageOrder::ROW_WISE)
         {
             // reserve space
-            compressed_mat.inner_indexes.reserve(last_row - first_row + 2); 
+            compressed_mat.inner_indexes.reserve(n_rows + 1);
             compressed_mat.outer_indexes.reserve(dynamic_mat.elements.size());
 
             // store all column indexes inside outer_indexes
@@ -104,20 +99,20 @@ public:
             // store row indexes inside inner_indexes
             compressed_mat.inner_indexes.push_back(0); // first element is always 0
             
-            std::size_t distance;
-            for(std::size_t i = first_row; i <= last_row; ++i)
+            std::size_t distance = static_cast<std::size_t>(0);
+            for(std::size_t i = 0; i < n_rows; ++i)
             {
                 auto low_bound = dynamic_mat.elements.lower_bound({i, 0});
                 auto up_bound = dynamic_mat.elements.upper_bound({i + 1, 0});
                 distance += std::ranges::distance(low_bound, up_bound); // computing how many elements there are in a row
-                compressed_mat.inner_indexes.push_back(distance);
-            }           
+                compressed_mat.inner_indexes.push_back(distance - 1);
+            }     
 
         }
         else // if Order == StorageOrder::COLUMN_WISE
         {
             // reserve space
-            compressed_mat.inner_indexes.reserve(last_col - first_col + 2); 
+            compressed_mat.inner_indexes.reserve(n_cols + 1); 
             compressed_mat.outer_indexes.reserve(dynamic_mat.elements.size());
 
             // store all row indexes inside outer_indexes
@@ -129,12 +124,12 @@ public:
             // store column indexes inside inner_indexes
             compressed_mat.inner_indexes.push_back(0); // first element is always 0
             
-            for(std::size_t i = first_col; i <= last_col; ++i)
+            for(std::size_t i = 0; i < n_cols; ++i)
             {
                 auto low_bound = dynamic_mat.elements.lower_bound({0, i});
                 auto up_bound = dynamic_mat.elements.upper_bound({0, i + 1});
                 auto distance = std::ranges::distance(low_bound, up_bound); // computing how many elements there are in a row
-                compressed_mat.inner_indexes.push_back(distance);
+                compressed_mat.inner_indexes.push_back(distance - 1);
             }
 
         }
@@ -143,7 +138,7 @@ public:
         std::transform(dynamic_mat.elements.begin(),
                             dynamic_mat.elements.end(), 
                             std::back_inserter(compressed_mat.values), 
-                            [](auto& pair) { return std::move(pair.second); });        
+                            [](auto& pair) { return std::move(pair.second); });      
 
         // Change compressed state
         compressed = true;
