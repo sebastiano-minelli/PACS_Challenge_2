@@ -303,12 +303,10 @@ public:
                 throw std::runtime_error("Error while reading the file");
 
             // Insert the element in the map
-            std::cout << "element (" << i << ", " << j << ") = " << value << std::endl;
             file_mat.insert(std::make_pair(std::array<std::size_t, DIM>{i - 1, j - 1}, value));
         }
 
         dynamic_mat = DynamicMatrix<T, Order>(std::move(file_mat));
-        std::cout << "Number of elements: " << dynamic_mat.elements.size() << std::endl;
     }
 
 }; // end of class Matrix
