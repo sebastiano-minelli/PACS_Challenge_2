@@ -268,6 +268,72 @@ public:
         return result;
     }
 
+    /*
+    Overload of the operator * for the multiplication of a MAtrix type with a Matrix type (of just one column)
+    Notice that about performances it doesn't make sense to store a matrix of one column row-wise in a compressed state
+    Therefore I didn't implement that case
+    */
+   friend std::vector<T> operator*(Matrix<T, Order>& mat, Matrix<T, Order>& v)
+    {
+        if(mat.n_cols != v.size())
+            throw std::invalid_argument("Matrix-vector multiplication: invalid dimensions");
+        //else
+        const auto dim = mat.n_rows;
+        std::vector<T> result(dim, static_cast<T>(0)); // cast dim elements to 0
+
+        if(mat.compressed)
+        {
+            auto value_it = mat.compressed_mat.values.cbegin();
+            auto outer_it = mat.compressed_mat.outer_indexes.cbegin();
+
+            if constexpr (Order == StorageOrder::ROW_WISE)
+            {        
+                std::size_t start = static_cast<std::size_t>(0);                   
+                for(std::size_t i = 0; i < mat.n_rows; ++i)
+                {
+                    std::size_t end = mat.compressed_mat.inner_indexes[i + 1];
+
+                    for(std::size_t j = start; j < end; ++j)
+                    {
+                        auto value = *value_it;
+                        auto outer = *outer_it;
+                        result[i] += value * v[outer];
+                        ++value_it;
+                        ++outer_it;
+                    }
+                    start = end;
+                }
+            }
+            else // if mat.Order == StorageOrder::COLUMN_WISE
+            {
+                std::size_t start = static_cast<std::size_t>(0);
+                for(std::size_t i = 0; i < mat.n_cols; ++i)
+                {
+                    std::size_t end = mat.compressed_mat.inner_indexes[i + 1];
+                    for(std::size_t j = start; j < end; ++j)
+                    {    
+                        auto value = *value_it;
+                        auto outer = *outer_it;
+                        result[outer] += (value) * v[i];
+                        ++value_it;
+                        ++outer_it;
+                    }
+                    start = end;
+                }
+            }
+        }
+        else if(!mat.compressed)
+        {
+            for(auto it = mat.dynamic_mat.elements.begin(); it != mat.dynamic_mat.elements.end(); ++it)
+                result[it->first[0]] += it->second * v[it->first[1]];                
+        }
+
+        return result;
+    }
+
+
+
+
     void parse_from_file(const std::string & filename)
     {
         // Check that the file exists
