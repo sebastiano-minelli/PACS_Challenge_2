@@ -17,8 +17,8 @@ int main(int argc, char *argv[])
     // std::string filename = "matrix1.mtx";
 
     M.parse_from_file(filename);
-    std::cout << "Number of rows:       " << M.rows() << std::endl;
-    std::cout << "Number of columns:    " << M.columns() << std::endl;
+    std::cout << "Number of rows:            " << M.rows() << std::endl;
+    std::cout << "Number of columns:         " << M.columns() << std::endl;
     
 
     // perform multiplication tests
@@ -53,7 +53,9 @@ int main(int argc, char *argv[])
         time_comp = std::min(walltime, time_comp);
     }
 
-    std::cout << "Multiplication performance test results:" << std::endl;
+    std::cout << "----- Multiplication performance test results -----" << std::endl;
+    std::cout << "Storing method:            " << (
+                ordering == algebra::StorageOrder::ROW_WISE ? "ROW-WISE" : "COLUMN-WISE") << std::endl;
     std::cout << std::fixed << std::setprecision(8);
     std::cout << "Uncompressed best time:    " << time_unc << " microseconds" << std::endl;
     std::cout << "Compressed best time:      " << time_comp << " microseconds" << std::endl;
