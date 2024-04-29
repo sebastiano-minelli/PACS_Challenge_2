@@ -1,5 +1,5 @@
 ### change PACS_EXAMPLES_PATH pasting your machine path to 'pacs-examples/' git folder
-PACS_EXAMPLES_PATH=${PACS_ROOT}
+PACS_EXAMPLES_PATH=$(shell echo $$PACS_ROOT)
 
 CXX      ?= g++
 CXXFLAGS ?= -std=c++20
@@ -7,6 +7,9 @@ CXXFLAGS ?= -std=c++20
 EXEC = main
 OBJECT = main.cpp
 COMP = main.o
+LDINC = $(PACS_EXAMPLES_PATH)/Examples/include/
+LDLIB = $(PACS_EXAMPLES_PATH)/Examples/lib/
+LDNAME = pacs
 
 .PHONY = clean help debug standard optimized
 
@@ -15,22 +18,22 @@ COMP = main.o
 .SECONDARY: $(EXEC) $(COMP)
 
 # set compilation mode
-debug: CPPFLAGS = -g -Wall -I. -I../lib -Wno-conversion-null -Wno-deprecated-declarations
+debug: CPPFLAGS = -g -Wall -Wno-conversion-null -Wno-deprecated-declarations
 debug: all
 
-standard: CPPFLAGS = -O0 -Wall -I. -I../lib -Wno-conversion-null -Wno-deprecated-declarations
+standard: CPPFLAGS = -O0 -Wall -Wno-conversion-null -Wno-deprecated-declarations
 standard: all
 
-optimized: CPPFLAGS = -O3 -Wall -I. -I../lib -Wno-conversion-null -Wno-deprecated-declarations
+optimized: CPPFLAGS = -O3 -Wall -Wno-conversion-null -Wno-deprecated-declarations
 optimized: all
 
 all: clean $(EXEC)
 
 $(EXEC): $(COMP)
-	$(CXX) $(CXXFLAGS) $(COMP) -o $(EXEC)
+	$(CXX) $(CXXFLAGS) -L$(LDLIB) -Wl,-rpath,$(LDLIB) -l$(LDNAME) $(COMP) -o $(EXEC)
 	
 $(COMP): $(OBJECT)
-	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c $(OBJECT)
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -I$(LDINC) -c $(OBJECT)
 	
 clean:
 	$(RM) *.o $(EXEC)
