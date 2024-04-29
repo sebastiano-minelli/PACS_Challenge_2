@@ -42,20 +42,20 @@ public:
 
     void resize(const std::size_t nrows, const std::size_t ncols)
     {
-        if(!compressed && (nrows < n_rows || ncols < n_cols)) // if where have a dynamic matrix we need to call the resize() method
+        if(!compressed && (nrows < n_rows || ncols < n_cols)) // if we have a dynamic matrix, we need to call the resize() method
         {
             n_rows = nrows;
             n_cols = ncols;
             dynamic_mat.resize(n_rows, n_cols);
         }
-        else if(!compressed) // if it is dynamic but we enlarge it no need to take out elements
+        else if(!compressed) // if it is dynamic but we enlarge it, no need to take out elements
         {
             n_rows = nrows;
             n_cols = ncols;
         }
         else // if(compressed)
         {
-            std::cout << "Attention: the matrix will be leaved in an uncompressed state" << std::endl;
+            std::cout << "ATTENTION: the matrix will be leaved in an uncompressed state" << std::endl;
             n_rows = nrows;
             n_cols = ncols;
             this->uncompress();
@@ -194,7 +194,7 @@ public:
 
     T& operator()(const std::size_t i, const std::size_t j)
     {
-        if (i > n_rows || j > n_cols)
+        if (i >= n_rows || j >= n_cols)
             throw std::out_of_range("Matrix index out of range");
         if(compressed)
             return compressed_mat(i, j);
@@ -203,7 +203,7 @@ public:
 
     const T operator()(const std::size_t i, const std::size_t j) const
     {
-        if (i > n_rows || j > n_cols)
+        if (i >= n_rows || j >= n_cols)
             throw std::out_of_range("Matrix index out of range");
         if(compressed)
             return compressed_mat(i, j);

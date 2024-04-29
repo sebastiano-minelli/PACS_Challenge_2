@@ -50,5 +50,26 @@ int main(int argc, char *argv[])
     std::cout << y[2] << std::endl;
     std::cout << y[3] << std::endl;
 
+    std::cout << "Number of rows: " << m_row.rows() << std::endl;
+    std::cout << "Number of columns: " << m_row.columns() << std::endl;
+
+    // resizing test
+    m_row.uncompress();
+    m_row.resize(10, 10);
+    std::cout << "Number of rows: " << m_row.rows() << std::endl;
+    std::cout << "Number of columns: " << m_row.columns() << std::endl;
+    std::cout << "Matrix read: " << std::endl;
+    std::cout << m_row(0, 1) << std::endl;
+    std::cout << m_row(0, 2) << std::endl;
+    std::cout << m_row(0, 3) << std::endl;
+    std::cout << m_row(1, 0) << std::endl;
+    std::cout << m_row(1, 1) << std::endl;
+    std::cout << m_row(2, 2) << std::endl;
+    std::cout << m_row(9, 9) << std::endl;
+
+    
+
+
+
     return 0;
 }
