@@ -225,7 +225,7 @@ public:
 
             if constexpr (Order == StorageOrder::ROW_WISE)
             {                           
-                for(std::size_t i = 0; i < mat.n_rows - 1; ++i)
+                for(std::size_t i = 0; i < mat.n_rows; ++i)
                 {
                     for(std::size_t j = 0; j < mat.compressed_mat.inner_indexes[i + 1] - mat.compressed_mat.inner_indexes[i]; ++j)
                     {
@@ -237,7 +237,7 @@ public:
             }
             else // if mat.Order == StorageOrder::COLUMN_WISE
             {
-                for(std::size_t i = 0; i < mat.n_cols - 1; ++i)
+                for(std::size_t i = 0; i < mat.n_cols; ++i)
                 {
                     for(std::size_t j = 0; j < mat.compressed_mat.inner_indexes[i + 1] - mat.compressed_mat.inner_indexes[i]; ++j)
                     {    
