@@ -224,27 +224,38 @@ public:
             auto outer_it = mat.compressed_mat.outer_indexes.cbegin();
 
             if constexpr (Order == StorageOrder::ROW_WISE)
-            {                           
+            {        
+                std::size_t start = static_cast<std::size_t>(0);                   
                 for(std::size_t i = 0; i < mat.n_rows; ++i)
                 {
-                    for(std::size_t j = 0; j < mat.compressed_mat.inner_indexes[i + 1] - mat.compressed_mat.inner_indexes[i]; ++j)
+                    std::size_t end = mat.compressed_mat.inner_indexes[i + 1];
+
+                    for(std::size_t j = start; j < end; ++j)
                     {
-                        result[i] += (*value_it) * v[(*outer_it)];
+                        auto value = *value_it;
+                        auto outer = *outer_it;
+                        result[i] += value * v[outer];
                         ++value_it;
                         ++outer_it;
                     }
+                    start = end;
                 }
             }
             else // if mat.Order == StorageOrder::COLUMN_WISE
             {
+                std::size_t start = static_cast<std::size_t>(0);
                 for(std::size_t i = 0; i < mat.n_cols; ++i)
                 {
-                    for(std::size_t j = 0; j < mat.compressed_mat.inner_indexes[i + 1] - mat.compressed_mat.inner_indexes[i]; ++j)
+                    std::size_t end = mat.compressed_mat.inner_indexes[i + 1];
+                    for(std::size_t j = start; j < end; ++j)
                     {    
-                        result[*outer_it] += (*value_it) * v[i];
+                        auto value = *value_it;
+                        auto outer = *outer_it;
+                        result[outer] += (value) * v[i];
                         ++value_it;
                         ++outer_it;
                     }
+                    start = end;
                 }
             }
         }

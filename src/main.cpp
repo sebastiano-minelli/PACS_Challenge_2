@@ -1,75 +1,63 @@
 #include <iostream>
+#include <algorithm>
+#include <iomanip>
 #include "Matrix.hpp"
+#include "chrono.hpp"
 
 int main(int argc, char *argv[])
 {
-    
-    algebra::Matrix<double, algebra::StorageOrder::ROW_WISE> m_row;
+    using var_type = double; // value type
+    constexpr algebra::StorageOrder ordering = algebra::StorageOrder::ROW_WISE; // storage method
 
-    // std::string filename = "lnsp_131.mtx";
-    std::string filename = "matrix1.mtx";
+    Timings::Chrono clock;
 
-    m_row.parse_from_file(filename);
+    algebra::Matrix<var_type, ordering> M;
 
-    std::cout << "Matrix read from file: " << std::endl;
-    std::cout << m_row(0, 1) << std::endl;
-    std::cout << m_row(0, 2) << std::endl;
-    std::cout << m_row(0, 3) << std::endl;
-    std::cout << m_row(1, 0) << std::endl;
-    std::cout << m_row(1, 1) << std::endl;
-    std::cout << m_row(2, 2) << std::endl;
-    std::cout << "Compressed state: " << m_row.is_compressed() << std::endl;
-    m_row.compress();
-    std::cout << "Compressed state: " << m_row.is_compressed() << std::endl;
-    std::cout << "Compressed matrix read from file: " << std::endl;
-    std::cout << m_row(0, 1) << std::endl;
-    std::cout << m_row(0, 2) << std::endl;
-    std::cout << m_row(0, 3) << std::endl;
-    std::cout << m_row(1, 0) << std::endl;
-    std::cout << m_row(1, 1) << std::endl;
-    std::cout << m_row(2, 2) << std::endl;
+    std::string filename = "lnsp_131.mtx";
+    // std::string filename = "matrix1.mtx";
+
+    M.parse_from_file(filename);
+    std::cout << "Number of rows:       " << M.rows() << std::endl;
+    std::cout << "Number of columns:    " << M.columns() << std::endl;
     
 
+    // perform multiplication tests
 
-    m_row.compress();
-    std::cout << "Compressed state: " << m_row.is_compressed() << std::endl;
-    std::cout << "Uncompressed matrix read from file: " << std::endl;
-    std::cout << m_row(0, 1) << std::endl;
-    std::cout << m_row(0, 2) << std::endl;
-    std::cout << m_row(0, 3) << std::endl;
-    std::cout << m_row(1, 0) << std::endl;
-    std::cout << m_row(1, 1) << std::endl;
-    std::cout << m_row(2, 2) << std::endl;
+    std::vector<var_type> v(M.columns(), static_cast<var_type>(1.0)); // vector of ones
+    std::vector<var_type> res1(M.rows(), static_cast<var_type>(0.0)); // uncompressed result
+    std::vector<var_type> res2(M.rows(), static_cast<var_type>(0.0)); // compressed result
+
+    std::size_t n = 10000; // number of tests
+
+    // uncompress state test
+    double time_unc = std::numeric_limits<double>::max();
+    M.uncompress();
+    for(std::size_t i = 0; i < n; ++i)
+    {
+        clock.start();
+        res2 = std::move(M * v);
+        clock.stop();
+        auto walltime = clock.wallTime();
+        time_unc = std::min(walltime, time_unc);
+    }
+
+    // compress state test
+    double time_comp = std::numeric_limits<double>::max();
+    M.compress();
+    for(std::size_t i = 0; i < n; ++i)
+    {
+        clock.start();
+        res1 = std::move(M * v);
+        clock.stop();
+        auto walltime = clock.wallTime();
+        time_comp = std::min(walltime, time_comp);
+    }
+
+    std::cout << "Multiplication performance test results:" << std::endl;
+    std::cout << std::fixed << std::setprecision(8);
+    std::cout << "Uncompressed best time:    " << time_unc << " microseconds" << std::endl;
+    std::cout << "Compressed best time:      " << time_comp << " microseconds" << std::endl;
     
-    m_row.compress();
-    std::cout << "Matrix-vector product: " << std::endl;
-    std::vector<double> x = {2.0, 0.0, 1.0, 0.0};
-    std::vector<double> y = m_row * x;
-    std::cout << y[0] << std::endl;
-    std::cout << y[1] << std::endl;
-    std::cout << y[2] << std::endl;
-    std::cout << y[3] << std::endl;
-
-    std::cout << "Number of rows: " << m_row.rows() << std::endl;
-    std::cout << "Number of columns: " << m_row.columns() << std::endl;
-
-    // resizing test
-    m_row.uncompress();
-    m_row.resize(10, 10);
-    std::cout << "Number of rows: " << m_row.rows() << std::endl;
-    std::cout << "Number of columns: " << m_row.columns() << std::endl;
-    std::cout << "Matrix read: " << std::endl;
-    std::cout << m_row(0, 1) << std::endl;
-    std::cout << m_row(0, 2) << std::endl;
-    std::cout << m_row(0, 3) << std::endl;
-    std::cout << m_row(1, 0) << std::endl;
-    std::cout << m_row(1, 1) << std::endl;
-    std::cout << m_row(2, 2) << std::endl;
-    std::cout << m_row(9, 9) << std::endl;
-
     
-
-
-
     return 0;
 }
