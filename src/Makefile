@@ -38,7 +38,7 @@ clean:
 help:
 	@echo "Usage: make [TARGET]"
 	@echo "TARGETS:"
-	@echo "  debug    compile in debug mode"
-	@echo "  standard compile in standard mode, i.e. no optimization"
-	@echo "  optimized  compile in -03 optimization mode"
-	@echo "  clean    remove all build artifacts"
+	@echo " - debug:        compile in debug mode"
+	@echo " - standard:     compile in standard mode, i.e. no optimization"
+	@echo " - optimized:    compile in -03 optimization mode"
+	@echo " - clean:        remove all build artifacts"
