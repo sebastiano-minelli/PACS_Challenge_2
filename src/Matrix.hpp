@@ -213,20 +213,21 @@ public:
         return dynamic_mat(i, j);
     }
 
-    friend std::vector<T> operator*(Matrix<T, Order>& mat, std::vector<T> & v)
+    template<typename TT, StorageOrder OrderL>
+    friend std::vector<TT> operator*(Matrix<TT, OrderL>& mat, std::vector<TT> & v)
     {
         if(mat.n_cols != v.size())
             throw std::invalid_argument("Matrix-vector multiplication: invalid dimensions");
         //else
         const auto dim = mat.n_rows;
-        std::vector<T> result(dim, static_cast<T>(0)); // cast dim elements to 0
+        std::vector<TT> result(dim, static_cast<TT>(0)); // cast dim elements to 0
 
         if(mat.compressed)
         {
             auto value_it = mat.compressed_mat.values.cbegin();
             auto outer_it = mat.compressed_mat.outer_indexes.cbegin();
 
-            if constexpr (Order == StorageOrder::ROW_WISE)
+            if constexpr (OrderL == StorageOrder::ROW_WISE)
             {        
                 std::size_t start = static_cast<std::size_t>(0);                   
                 for(std::size_t i = 0; i < mat.n_rows; ++i)
@@ -244,7 +245,7 @@ public:
                     start = end;
                 }
             }
-            else // if mat.Order == StorageOrder::COLUMN_WISE
+            else // if OrderL == StorageOrder::COLUMN_WISE
             {
                 std::size_t start = static_cast<std::size_t>(0);
                 for(std::size_t i = 0; i < mat.n_cols; ++i)
@@ -271,70 +272,48 @@ public:
         return result;
     }
 
-
-
-
     /*
-    Overload of the operator * for the multiplication of a MAtrix type with a Matrix type (of just one column)
+    Overload of the operator * for the multiplication of a Matrix type with a Matrix type (of just one column)
     Notice that about performances it doesn't make sense to store a matrix of one column row-wise in a compressed state
     Therefore I didn't implement that case
+    Matrix by matrix multiplication. 
+    To ease the implementation I just compute the case where both matrices are stored in a compressed state
+    (otherwise I compress them and then compute the multiplication)
+    The matrix returned is compressed and with the same ordering method of the left one
     */
-   friend Matrix<T, Order> operator*(Matrix<T, Order>& LM, Matrix<T, Order>& RM)
+   template<typename TT, StorageOrder OrderL, StorageOrder OrderR>
+   friend Matrix<TT, OrderL> operator*(Matrix<TT, OrderL>& LM, Matrix<TT, OrderR>& RM)
     {
-        if(mat.n_cols != v.size())
-            throw std::invalid_argument("Matrix-vector multiplication: invalid dimensions");
+        if(LM.n_cols != RM.n_rows)
+            throw std::invalid_argument("Matrix-Matrix multiplication: invalid dimensions");
         //else
-        const auto dim = mat.n_rows;
-        std::vector<T> result(dim, static_cast<T>(0)); // cast dim elements to 0
 
-        if(mat.compressed)
+        // check if matrices are uncompressed and compress them if so
+        if(!LM.compressed)
         {
-            auto value_it = mat.compressed_mat.values.cbegin();
-            auto outer_it = mat.compressed_mat.outer_indexes.cbegin();
-
-            if constexpr (Order == StorageOrder::ROW_WISE)
-            {        
-                std::size_t start = static_cast<std::size_t>(0);                   
-                for(std::size_t i = 0; i < mat.n_rows; ++i)
-                {
-                    std::size_t end = mat.compressed_mat.inner_indexes[i + 1];
-
-                    for(std::size_t j = start; j < end; ++j)
-                    {
-                        auto value = *value_it;
-                        auto outer = *outer_it;
-                        result[i] += value * v[outer];
-                        ++value_it;
-                        ++outer_it;
-                    }
-                    start = end;
-                }
-            }
-            else // if mat.Order == StorageOrder::COLUMN_WISE
-            {
-                std::size_t start = static_cast<std::size_t>(0);
-                for(std::size_t i = 0; i < mat.n_cols; ++i)
-                {
-                    std::size_t end = mat.compressed_mat.inner_indexes[i + 1];
-                    for(std::size_t j = start; j < end; ++j)
-                    {    
-                        auto value = *value_it;
-                        auto outer = *outer_it;
-                        result[outer] += (value) * v[i];
-                        ++value_it;
-                        ++outer_it;
-                    }
-                    start = end;
-                }
-            }
+            std::cerr << "Warning: matrix times matrix multiplication" << std::endl;
+            std::cerr << "Left matrix is uncompressed, it will be left in a compressed state" << std::endl;
+            LM.compress();
         }
-        else if(!mat.compressed)
+        if(!RM.compressed)
         {
-            for(auto it = mat.dynamic_mat.elements.begin(); it != mat.dynamic_mat.elements.end(); ++it)
-                result[it->first[0]] += it->second * v[it->first[1]];                
+            std::cerr << "Warning: matrix times matrix multiplication" << std::endl;
+            std::cerr << "Right matrix is uncompressed, it will be left in a compressed state" << std::endl;
+            RM.compress();
+        }
+        
+        const auto n_rows = LM.n_rows; // rows of the returned matrix
+        const auto n_cols = RM.n_cols; // column of the returned matrix
+        Matrix<TT, OrderL> M(n_rows, n_cols); // matrix to be returned
+        M.compressed = true;
+
+        // implementing multiplication based on the storage method
+        if(OrderL == StorageOrder::ROW_WISE)
+        {
+            std::cout << "hello";
         }
 
-        return result;
+        return M;
     }
 
 
