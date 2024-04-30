@@ -12,6 +12,14 @@ enum StorageOrder
     COLUMN_WISE
 };
 
+// Enumerator that describes the possible norms
+enum NormType
+{
+    One,
+    Infinity,
+    Frobenius
+};
+
 inline constexpr std::size_t DIM = 2; // Dimension of the tuple that describes a matrix element
 
 /// Type specialization for DynamicMatrix class elements ///

@@ -331,8 +331,164 @@ public:
         return result;
     }
 
+    // Computes the norm (One, Infinity or Frobenius) of the matrix
+    template<NormType norm_type>
+    const T norm() const
+    {
+        if constexpr (norm_type == NormType::Infinity)
+        {
+            if constexpr (Order == StorageOrder::ROW_WISE)
+            {
+                if(!compressed)
+                {
+                    std::vector<T> row_sum(n_rows, static_cast<T>(0)); // sum of the elements of a row (initialized to 0)
 
+                    for(auto it = dynamic_mat.elements.cbegin(); it != dynamic_mat.elements.cend(); ++it)
+                    {
+                        row_sum[it.first[0]] += std::abs(it.second);
+                    }
+                    auto norm = std::ranges::max(row_sum.cbegin(), row_sum.cend()); // norm to be returned
+                    return norm;
+                }
+                else // if(compressed)
+                {
+                    std::vector<T> row_sum(n_rows, static_cast<T>(0)); // at most every row has a non zero element 
+                    auto value_it = mat.compressed_mat.values.cbegin();     
+                    std::size_t start = static_cast<std::size_t>(0);                   
+                    for(std::size_t i = 0; i < mat.n_rows; ++i)
+                    {
+                        std::size_t end = mat.compressed_mat.inner_indexes[i + 1];
 
+                        for(std::size_t j = start; j < end; ++j)
+                        {
+                            row_sum[i] += std::abs(*value_it);
+                            ++value_it;
+                        }
+                        start = end;
+                    }
+                    auto norm = std::ranges::max(row_sum.cbegin(), row_sum.cend()); // norm to be returned
+                    return norm;
+                }
+
+            }else // if (Order == StorageOrder::COLUMN_WISE)
+            {
+                if(!compressed) // the code is equivalent with the previuos one (I am exploiting if constexpr not to be redundant)
+                {
+                    std::vector<T> row_sum(n_rows, static_cast<T>(0)); // sum of the elements of a row (initialized to 0)
+
+                    for(auto it = dynamic_mat.elements.cbegin(); it != dynamic_mat.elements.cend(); ++it)
+                    {
+                        row_sum[it.first[0]] += std::abs(it.second);
+                    }
+                    auto norm = std::ranges::max(row_sum.cbegin(), row_sum.cend()); // norm to be returned
+                    return norm;
+
+                }
+                else // if(compressed)
+                {
+                    std::vector<T> row_sum(n_rows, static_cast<T>(0)); // at most every row has a non zero element 
+                    auto value_it = mat.compressed_mat.values.cbegin();
+                    auto outer_it = mat.compressed_mat.outer_indexes.cbegin();     
+                    std::size_t start = static_cast<std::size_t>(0);                   
+                    for(std::size_t i = 0; i < mat.n_cols; ++i)
+                    {
+                        std::size_t end = mat.compressed_mat.inner_indexes[i + 1];
+
+                        for(std::size_t j = start; j < end; ++j)
+                        {
+                            row_sum[*outer_it] += std::abs(*value_it);
+                            ++value_it;
+                        }
+                        start = end;
+                    }
+                    auto norm = std::ranges::max(row_sum.cbegin(), row_sum.cend()); // norm to be returned
+                    return norm;
+                }
+
+            }
+
+        }
+        else if constexpr (norm_type == NormType::One)
+        {
+            if constexpr (Order == StorageOrder::ROW_WISE)
+            {
+                if(!compressed)
+                {
+                    std::vector<T> col_sum(n_cols, static_cast<T>(0)); // sum of the elements of a column (initialized to 0)
+                    for(auto it = dynamic_mat.elements.cbegin(); it != dynamic_mat.elements.cend(); ++it)
+                    {
+                        col_sum[it.first[1]] += std::abs(it.second); 
+                    }
+                    auto norm = std::ranges::max(row_sum.cbegin(), row_sum.cend()); // norm to be returned
+                    return norm;
+                }
+                else // if(compressed)
+                {
+                    std::vector<T> row_sum(n_rows, static_cast<T>(0)); // at most every row has a non zero element 
+                    auto value_it = mat.compressed_mat.values.cbegin();     
+                    std::size_t start = static_cast<std::size_t>(0);                   
+                    for(std::size_t i = 0; i < mat.n_rows; ++i)
+                    {
+                        std::size_t end = mat.compressed_mat.inner_indexes[i + 1];
+
+                        for(std::size_t j = start; j < end; ++j)
+                        {
+                            row_sum[i] += std::abs(*value_it);
+                            ++value_it;
+                        }
+                        start = end;
+                    }
+                    auto norm = std::ranges::max(row_sum.cbegin(), row_sum.cend()); // norm to be returned
+                    return norm;
+                }
+
+            }else // if (Order == StorageOrder::COLUMN_WISE)
+            {
+                if(!compressed)
+                {
+                    std::vector<T> col_sum(n_cols, static_cast<T>(0)); // sum of the elements of a column (initialized to 0)
+                    for(auto it = dynamic_mat.elements.cbegin(); it != dynamic_mat.elements.cend(); ++it)
+                    {
+                        col_sum[it.first[1]] += std::abs(it.second); 
+                    }
+                    auto norm = std::ranges::max(row_sum.cbegin(), row_sum.cend()); // norm to be returned
+                    return norm;
+
+                }
+                else // if(compressed)
+                {
+                    std::vector<T> row_sum(n_rows, static_cast<T>(0)); // at most every row has a non zero element 
+                    auto value_it = mat.compressed_mat.values.cbegin();
+                    auto outer_it = mat.compressed_mat.outer_indexes.cbegin();     
+                    std::size_t start = static_cast<std::size_t>(0);                   
+                    for(std::size_t i = 0; i < mat.n_cols; ++i)
+                    {
+                        std::size_t end = mat.compressed_mat.inner_indexes[i + 1];
+
+                        for(std::size_t j = start; j < end; ++j)
+                        {
+                            row_sum[*outer_it] += std::abs(*value_it);
+                            ++value_it;
+                        }
+                        start = end;
+                    }
+                    auto norm = std::ranges::max(row_sum.cbegin(), row_sum.cend()); // norm to be returned
+                    return norm;
+                }
+
+        }
+        else if constexpr (norm_type == NormType::Frobenius)
+        {
+            if constexpr (Order == StorageOrder::ROW_WISE)
+            {
+
+            }else
+            {
+
+            }
+
+        }
+    }
 
     void parse_from_file(const std::string & filename)
     {
