@@ -271,12 +271,15 @@ public:
         return result;
     }
 
+
+
+
     /*
     Overload of the operator * for the multiplication of a MAtrix type with a Matrix type (of just one column)
     Notice that about performances it doesn't make sense to store a matrix of one column row-wise in a compressed state
     Therefore I didn't implement that case
     */
-   friend std::vector<T> operator*(Matrix<T, Order>& mat, Matrix<T, Order>& v)
+   friend Matrix<T, Order> operator*(Matrix<T, Order>& LM, Matrix<T, Order>& RM)
     {
         if(mat.n_cols != v.size())
             throw std::invalid_argument("Matrix-vector multiplication: invalid dimensions");
@@ -333,6 +336,8 @@ public:
 
         return result;
     }
+
+
 
     // Computes the norm (One, Infinity or Frobenius) of the matrix
     template<NormType norm_type>
