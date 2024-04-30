@@ -398,6 +398,7 @@ public:
                         {
                             row_sum[*outer_it] += std::abs(*value_it);
                             ++value_it;
+                            ++outer_it;
                         }
                         start = end;
                     }
@@ -424,21 +425,23 @@ public:
                 }
                 else // if(compressed)
                 {
-                    std::vector<T> row_sum(n_rows, static_cast<T>(0)); // at most every row has a non zero element 
-                    auto value_it = mat.compressed_mat.values.cbegin();     
+                    std::vector<T> col_sum(n_cols, static_cast<T>(0)); // at most every column has a non zero element 
+                    auto value_it = mat.compressed_mat.values.cbegin();
+                    auto outer_it = mat.compressed_mat.outer_indexes.cbegin();     
                     std::size_t start = static_cast<std::size_t>(0);                   
-                    for(std::size_t i = 0; i < mat.n_rows; ++i)
+                    for(std::size_t i = 0; i < mat.n_cols; ++i)
                     {
                         std::size_t end = mat.compressed_mat.inner_indexes[i + 1];
 
                         for(std::size_t j = start; j < end; ++j)
                         {
-                            row_sum[i] += std::abs(*value_it);
+                            col_sum[*outer_it] += std::abs(*value_it);
                             ++value_it;
+                            ++outer_it;
                         }
                         start = end;
                     }
-                    auto norm = std::ranges::max(row_sum.cbegin(), row_sum.cend()); // norm to be returned
+                    auto norm = std::ranges::max(col_sum.cbegin(), col_sum.cend()); // norm to be returned
                     return norm;
                 }
 
@@ -457,9 +460,8 @@ public:
                 }
                 else // if(compressed)
                 {
-                    std::vector<T> row_sum(n_rows, static_cast<T>(0)); // at most every row has a non zero element 
+                    std::vector<T> col_sum(n_cols, static_cast<T>(0)); // at most every column has a non zero element 
                     auto value_it = mat.compressed_mat.values.cbegin();
-                    auto outer_it = mat.compressed_mat.outer_indexes.cbegin();     
                     std::size_t start = static_cast<std::size_t>(0);                   
                     for(std::size_t i = 0; i < mat.n_cols; ++i)
                     {
@@ -467,12 +469,12 @@ public:
 
                         for(std::size_t j = start; j < end; ++j)
                         {
-                            row_sum[*outer_it] += std::abs(*value_it);
+                            row_sum[i] += std::abs(*value_it);
                             ++value_it;
                         }
                         start = end;
                     }
-                    auto norm = std::ranges::max(row_sum.cbegin(), row_sum.cend()); // norm to be returned
+                    auto norm = std::ranges::max(col_sum.cbegin(), col_sum.cend()); // norm to be returned
                     return norm;
                 }
 
