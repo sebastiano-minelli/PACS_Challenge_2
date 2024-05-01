@@ -1,5 +1,5 @@
 ### Second challenge  
-This is the folder containing code for second challenge of PACS course, there are three subfolders:  
+This is the folder containing the code for second challenge of PACS course, there are four subfolders:  
 - **doc**: it contains just the challenge pdf
 - **lib**: it contains the header files
 - **src**: it contains *main.cpp* and the *Makefile* to run the program
@@ -12,7 +12,7 @@ If something doesn't work then set the variable *PACS_EXAMPLE_PATH* inside *Make
 This is of course a template code, all the variables that can be changed before compiling are declared in the first lines of the *main.cpp* file.  
 They are:
 - storage ordering method: row-wise or column-wise  
-- matrix element type: I set it to double, it should work also with other types (if you change the read matrices from the files)
+- matrix element type: I set it to double, it should work also with other types (but you should change the read matrices from the files)
 - norm types: One, Frobenius or Infinity  
 
 **Code features**  
@@ -26,8 +26,8 @@ They are:
 **Useful notes**:  
 I wrote some tests in the *main.cpp*.
 - Multiplication performance test: it tests if matrix-vector multiplication is faster in the compressed or uncompressed format (one can change the row-wise column-wise storage modifying the variable inside *main.cpp*)
-- Multiplication correctness test: it just evalueates matrix-vector multiplication to test if it is correct (the vector in this case is a Matrix type)
-- Norm test: it just shows all the possible norms for a matrix, actually it computes all the norms in the compress and uncompress state, the result should be equal in both cases
+- Multiplication correctness test: it just evaluates matrix-vector multiplication to test if it is correct (the vector in this case is a Matrix type)
+- Norm test: it just shows all the possible norms for a matrix, actually it computes all the norms both in the compress and uncompress state, the result should be equal in both cases
 
 
 
