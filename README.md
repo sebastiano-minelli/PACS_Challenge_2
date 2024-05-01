@@ -6,21 +6,28 @@ This is the folder containing code for second challenge of PACS course, there ar
 - **files**: it contains the *.mtx* files to be read
 
 **How to run**  
-The program relies on muParserX that is implemented in the available git folder *pacs-examples/* and uses the header *muParserXInterface.hpp*.  
-To compile the program just change **PACS_EXAMPLES_PATH** variable inside *Makefile* to set the right path to your local *pacs-examples/* folder.
+The program relies on the Chrono.hpp header of the PACS course. If you have set the environmental variable *PACS_ROOT* to the directory *pacs-example* everything should work fine.  
+If something doesn't work then set the variable *PACS_EXAMPLE_PATH* inside *Makefile* to point to your *pacs-example* directory  
 
-All parameters are passed by the user through the text file *data.txt* (and then read by the program using GetPot).  
-This is true for every possible variable **except** for the domain dimension **DIM** that must be known at compile time. Currently the program is set with *DIM=2*, to modify it change the variable **DIM** inside *main.cpp* and **recompile** everything using *Makefile*.  
-Remember to properly set the function, its gradient and the initial point inside *data.txt* if you change **DIM** to account for higher or lower dimensions.
+This is of course a template code, all the variables that can be changed before compiling are declared in the first lines of the *main.cpp* file.  
+They are:
+- storage ordering method: row-wise or column-wise  
+- matrix element type: I set it to double, it should work also with other types (if you change the read matrices from the files)
+- norm types: One, Frobenius or Infinity  
 
 **Code features**  
-- The user can choose different minimization techniques to compute the minimum, the ones implemented are: Gradient, Heavy ball, Nesterov and Adam.
-- The update of the step coefficient can be set using different strategies: Exponential, Inverse decay and Armijo strategies are implemented.
-- One could choose not to provide a gradient for the function, in that case the gradient is computed numerically using a central different scheme. In this case an incremental step could be provided
+- Possibility to store matrices row-wise or column-wise (compile time feature)
+- Possibility to store matrices in a compress or uncompress format and pass from one state to the other (compressed formats are CSR or CSC depending on the row-wise or column-wise option)
+- Matrices can be read from files (by default they are stored in an uncompressed format)
+- Matrices can be multiplied by a vector (the vector can be a std::vector type or a Matrix type)
+- There are three possible matrix norms that can be computed: One, Frobenius or Infinity norm
+- Methods are programmed to distinguish between the different storing possibilities and implement suitable algorithms based on that
 
 **Useful notes**:  
-Indeed changing the method provides slightly different results, in particular the step coefficient $\alpha_0$, the maximum number of iterations and the tolerances are crucial for the method to converge to the right solution. A bit of tuning might be necessary to obtain the correct result.  
-Some good $\alpha_0$ choices are commented inside *data.txt* 
+I wrote some tests in the *main.cpp*.
+- Multiplication performance test: it tests if matrix-vector multiplication is faster in the compressed or uncompressed format (one can change the row-wise column-wise storage modifying the variable inside *main.cpp*)
+- Multiplication correctness test: it just evalueates matrix-vector multiplication to test if it is correct (the vector in this case is a Matrix type)
+- Norm test: it just shows all the possible norms for a matrix, actually it computes all the norms in the compress and uncompress state, the result should be equal in both cases
 
 
 

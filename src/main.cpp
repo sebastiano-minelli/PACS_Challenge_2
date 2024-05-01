@@ -6,11 +6,23 @@
 
 int main(int argc, char *argv[])
 {
+    ///// template variables ////
+
     using var_type = double; // value type
+
+    // Multiplication performance test matrix by vector
     constexpr algebra::StorageOrder ordering = algebra::StorageOrder::ROW_WISE; // storage method
+
+    // multiplication test matrix by vector with operator*(Matrix M, Matrix v)
+    constexpr algebra::StorageOrder ordering_mat = algebra::StorageOrder::COLUMN_WISE; // storage method for the matrix
+    constexpr algebra::StorageOrder ordering_vec = algebra::StorageOrder::COLUMN_WISE; // storage method for the vector
+
+    // Norm test
     constexpr algebra::NormType norm_type1 = algebra::NormType::One; // norm type one
     constexpr algebra::NormType norm_type2 = algebra::NormType::Infinity; // norm type two
     constexpr algebra::NormType norm_type3 = algebra::NormType::Frobenius; // norm type three
+
+    /////////////////////////////
 
     Timings::Chrono clock;
 
@@ -68,8 +80,6 @@ int main(int argc, char *argv[])
 
 
     //////// performing multiplication tests (matrix by vector but with Matrix-Matrix types) ///////////////////
-    constexpr algebra::StorageOrder ordering_mat = algebra::StorageOrder::COLUMN_WISE; // storage method for the matrix
-    constexpr algebra::StorageOrder ordering_vec = algebra::StorageOrder::COLUMN_WISE; // storage method for the vector
     algebra::Matrix<var_type, ordering_mat> LM;
     algebra::Matrix<var_type, ordering_vec> RM;
     LM.parse_from_file(filename_mat);
