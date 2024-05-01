@@ -13,7 +13,7 @@ LDNAME = pacs
 
 .PHONY = clean help debug standard optimized
 
-.DEFAULT_GOAL = standard
+.DEFAULT_GOAL = optimized
 
 .SECONDARY: $(EXEC) $(COMP)
 
