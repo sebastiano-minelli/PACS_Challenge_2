@@ -15,7 +15,7 @@ They are:
 - matrix element type: I set it to double, it should work also with other types (but you should change the read matrices from the files)
 - norm types: One, Frobenius or Infinity  
   
-The Makefile is set to compile in optimized mode, to change that just write *make help* to see the other options
+The Makefile is set to compile in optimized mode, to change that just write *make help* to see the other options, otherwise just type *make* to compile
 
 **Code features**  
 - Possibility to store matrices row-wise or column-wise (compile time feature)
