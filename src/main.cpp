@@ -16,8 +16,8 @@ int main(int argc, char *argv[])
 
     algebra::Matrix<var_type, ordering> M;
 
-    std::string filename = "lnsp_131.mtx"; // uncomment this line to test with 'lnsp_131.mtx' file
-    // std::string filename = "matrix1.mtx"; // uncomment this line to test with 'matrix1.mtx' file
+    //std::string filename = "lnsp_131.mtx"; // uncomment this line to test with 'lnsp_131.mtx' file
+    std::string filename = "matrix1.mtx"; // uncomment this line to test with 'matrix1.mtx' file
 
     M.parse_from_file(filename);
     std::cout << "Number of rows:            " << M.rows() << std::endl;
@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
     std::cout << std::endl;
     
 
-    //////// performing multiplication tests ///////////////////
+    //////// performing multiplication tests (matrix by vector) ///////////////////
 
     std::vector<var_type> v(M.columns(), static_cast<var_type>(1.0)); // vector of ones
     std::vector<var_type> res1(M.rows(), static_cast<var_type>(0.0)); // uncompressed result
@@ -64,6 +64,18 @@ int main(int argc, char *argv[])
     std::cout << "Uncompressed best time:    " << time_unc << " microseconds" << std::endl;
     std::cout << "Compressed best time:      " << time_comp << " microseconds" << std::endl;
     std::cout << std::endl;
+
+
+    //////// performing multiplication tests (matrix by matrix) ///////////////////
+    algebra::Matrix<var_type, ordering> LM;
+    algebra::Matrix<var_type, ordering> RM;
+    LM.parse_from_file(filename);
+    RM.parse_from_file(filename);
+    // compress matrices
+    LM.compress();
+    RM.compress();
+    algebra::Matrix<var_type, ordering> M_res; 
+    M_res = std::move(LM * RM);
 
 
     ///////// performing norm tests ////////////////////

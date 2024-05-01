@@ -274,18 +274,17 @@ public:
 
     /*
     Overload of the operator * for the multiplication of a Matrix type with a Matrix type (of just one column)
-    Notice that about performances it doesn't make sense to store a matrix of one column row-wise in a compressed state
-    Therefore I didn't implement that case
-    Matrix by matrix multiplication. 
-    To ease the implementation I just compute the case where both matrices are stored in a compressed state
-    (otherwise I compress them and then compute the multiplication)
-    The matrix returned is compressed and with the same ordering method of the left one
+    Matrix by matrix multiplication
+    I considered just the case of compressed matrices, if a matrix isn't compress I compress it firstly
+    The function returns a std::vector<T>
     */
    template<typename TT, StorageOrder OrderL, StorageOrder OrderR>
-   friend Matrix<TT, OrderL> operator*(Matrix<TT, OrderL>& LM, Matrix<TT, OrderR>& RM)
+   friend std::vector<TT> operator*(Matrix<TT, OrderL>& LM, Matrix<TT, OrderR>& v)
     {
-        if(LM.n_cols != RM.n_rows)
-            throw std::invalid_argument("Matrix-Matrix multiplication: invalid dimensions");
+        if(LM.n_cols != v.n_rows)
+            throw std::invalid_argument("Matrix-Vector multiplication: invalid dimensions");
+        if(v.n_cols != static_cast<std::size_t>(1))
+            throw std::invalid_argument("Matrix-Vector multiplication: invalid dimensions, the second operand must be a column vector");
         //else
 
         // check if matrices are uncompressed and compress them if so
@@ -295,22 +294,62 @@ public:
             std::cerr << "Left matrix is uncompressed, it will be left in a compressed state" << std::endl;
             LM.compress();
         }
-        if(!RM.compressed)
+        if(!v.compressed)
         {
             std::cerr << "Warning: matrix times matrix multiplication" << std::endl;
             std::cerr << "Right matrix is uncompressed, it will be left in a compressed state" << std::endl;
-            RM.compress();
+            v.compress();
         }
         
         const auto n_rows = LM.n_rows; // rows of the returned matrix
-        const auto n_cols = RM.n_cols; // column of the returned matrix
-        Matrix<TT, OrderL> M(n_rows, n_cols); // matrix to be returned
-        M.compressed = true;
+        const auto n_cols = LM.n_cols; // column of the returned matrix
+        std::vector<TT> result(n_rows, static_cast<TT>(0)); // vector to be returned (filled with zeros)
 
         // implementing multiplication based on the storage method
-        if(OrderL == StorageOrder::ROW_WISE)
+        if constexpr (OrderL == StorageOrder::ROW_WISE && OrderR == StorageOrder::ROW_WISE)
         {
-            std::cout << "hello";
+            std::vector<TT> n_elements; // number of elements in each row (for v)
+            n_elements.reserve(n_rows); // at most isn't sparse
+
+            // Store the indexes of the rows that contain an element
+            for(std::size_t i = 0; i < n_rows; ++i)
+            {
+                // check if the number of elements has changed
+                if(v.compressed_mat.inner_indexes[i + 1] != v.compressed_mat.inner_indexes[i])
+                    n_elements.push_back(i);
+            }
+
+            // compute the matrix-vector product
+            auto value_it = LM.compressed_mat.values.cbegin();
+            auto outer_it = LM.compressed_mat.outer_indexes.cbegin();
+            std::size_t start = static_cast<std::size_t>(0);
+            for(std::size_t i = 0; i < n_rows; ++i)
+            {
+                std::size_t end = LM.compressed_mat.inner_indexes[i + 1];
+                for(std::size_t j = start; j < end; ++j)
+                {   
+                    // check if there is a corresponding index fot the vector (used std::binary_search since n_elements is sorted by construction)
+                    if(std::binary_search(n_elements.cbegin(), n_elements.cend(), *outer_it))
+                        result[i] += (*value_it) * v.compressed_mat.values[*outer_it];
+                    ++value_it;
+                    ++outer_it;
+                }
+                start = end;
+            }
+            return result;
+        }
+        else if  constexpr (OrderL == StorageOrder::ROW_WISE && OrderR == StorageOrder::COLUMN_WISE)
+        {
+            
+            
+        }
+        else if constexpr (OrderL == StorageOrder::COLUMN_WISE && OrderR == StorageOrder::ROW_WISE)
+        {
+            
+        }
+        else // if constexpr (OrderL == StorageOrder::COLUMN_WISE && OrderR == StorageOrder::COLUMN_WISE)
+        {
+            
         }
 
         return M;
