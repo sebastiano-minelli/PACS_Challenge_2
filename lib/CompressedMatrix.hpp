@@ -1,7 +1,7 @@
 #ifndef HH_COMPRESSED_MATRIX_HH
 #define HH_COMPRESSED_MATRIX_HH
 
-#include "MatrixTraits.hpp"
+#include "MatrixUtilities.hpp"
 #include <iostream>
 #include <vector>
 

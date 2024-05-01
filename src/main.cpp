@@ -16,9 +16,9 @@ int main(int argc, char *argv[])
 
     algebra::Matrix<var_type, ordering> M;
 
-    //std::string filename = "lnsp_131.mtx"; // uncomment this line to test with 'lnsp_131.mtx' file
-    std::string filename = "matrix1.mtx"; // uncomment this line to test with 'matrix1.mtx' file
-    std::string filename_vector = "vector_sparse.mtx"; // parse a sparse vector
+    std::string filename = "../files/lnsp_131.mtx"; // uncomment this line to test with 'lnsp_131.mtx' file
+    std::string filename_mat = "../files/matrix1.mtx"; // uncomment this line to test with 'matrix1.mtx' file
+    std::string filename_vector = "../files/vector_sparse.mtx"; // parse a sparse vector
 
     M.parse_from_file(filename);
     std::cout << "Number of rows:            " << M.rows() << std::endl;
@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
     constexpr algebra::StorageOrder ordering_vec = algebra::StorageOrder::COLUMN_WISE; // storage method for the vector
     algebra::Matrix<var_type, ordering_mat> LM;
     algebra::Matrix<var_type, ordering_vec> RM;
-    LM.parse_from_file(filename);
+    LM.parse_from_file(filename_mat);
     RM.parse_from_file(filename_vector);
     // compress matrices
     LM.compress();

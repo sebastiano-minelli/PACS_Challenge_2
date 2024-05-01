@@ -18,13 +18,13 @@ LDNAME = pacs
 .SECONDARY: $(EXEC) $(COMP)
 
 # set compilation mode
-debug: CPPFLAGS = -g -Wall -Wno-conversion-null -Wno-deprecated-declarations
+debug: CPPFLAGS = -g -I. -I../lib -Wall -Wno-conversion-null -Wno-deprecated-declarations
 debug: all
 
-standard: CPPFLAGS = -O0 -Wall -Wno-conversion-null -Wno-deprecated-declarations
+standard: CPPFLAGS = -O0 -I. -I../lib -Wall -Wno-conversion-null -Wno-deprecated-declarations
 standard: all
 
-optimized: CPPFLAGS = -O3 -Wall -Wno-conversion-null -Wno-deprecated-declarations
+optimized: CPPFLAGS = -O3 -I. -I../lib -Wall -Wno-conversion-null -Wno-deprecated-declarations
 optimized: all
 
 all: clean $(EXEC)

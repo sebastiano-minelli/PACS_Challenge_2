@@ -1,7 +1,7 @@
 #ifndef HH_DYNAMIC_MATRIX_HH
 #define HH_DYNAMIC_MATRIX_HH
 
-#include "MatrixTraits.hpp"
+#include "MatrixUtilities.hpp"
 #include <iostream>
 #include<map>
 #include<array>
