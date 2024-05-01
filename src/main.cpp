@@ -18,6 +18,7 @@ int main(int argc, char *argv[])
 
     //std::string filename = "lnsp_131.mtx"; // uncomment this line to test with 'lnsp_131.mtx' file
     std::string filename = "matrix1.mtx"; // uncomment this line to test with 'matrix1.mtx' file
+    std::string filename_vector = "vector_sparse.mtx"; // parse a sparse vector
 
     M.parse_from_file(filename);
     std::cout << "Number of rows:            " << M.rows() << std::endl;
@@ -66,16 +67,30 @@ int main(int argc, char *argv[])
     std::cout << std::endl;
 
 
-    //////// performing multiplication tests (matrix by matrix) ///////////////////
-    algebra::Matrix<var_type, ordering> LM;
-    algebra::Matrix<var_type, ordering> RM;
+    //////// performing multiplication tests (matrix by vector but with Matrix-Matrix types) ///////////////////
+    constexpr algebra::StorageOrder ordering_mat = algebra::StorageOrder::ROW_WISE; // storage method for the matrix
+    constexpr algebra::StorageOrder ordering_vec = algebra::StorageOrder::ROW_WISE; // storage method for the vector
+    algebra::Matrix<var_type, ordering_mat> LM;
+    algebra::Matrix<var_type, ordering_vec> RM;
     LM.parse_from_file(filename);
-    RM.parse_from_file(filename);
+    RM.parse_from_file(filename_vector);
     // compress matrices
     LM.compress();
     RM.compress();
-    algebra::Matrix<var_type, ordering> M_res; 
+    std::vector<var_type> M_res; 
     M_res = std::move(LM * RM);
+    std::cout << "----- Multiplication Matrix-Matrix type test -----" << std::endl;
+    std::cout << "Matrix storing method:     " << (
+                ordering == algebra::StorageOrder::ROW_WISE ? "'ROW-WISE'" : "'COLUMN-WISE'") << std::endl;
+    std::cout << "Vector storing method:     " << (
+                ordering == algebra::StorageOrder::ROW_WISE ? "'ROW-WISE'" : "'COLUMN-WISE'") << std::endl;
+    std::cout << "Resulting vector:" << std::endl;
+    for(std::size_t i = 0; i < M_res.size(); ++i)
+    {
+        std::cout << "                           [" << i << "]: " << M_res[i] << std::endl;
+    }
+    std::cout << std::endl;
+
 
 
     ///////// performing norm tests ////////////////////
