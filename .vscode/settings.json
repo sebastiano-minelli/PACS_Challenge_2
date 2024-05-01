@@ -49,6 +49,11 @@
         "fstream": "cpp",
         "sstream": "cpp",
         "optional": "cpp",
-        "ranges": "cpp"
+        "ranges": "cpp",
+        "chrono": "cpp",
+        "ctime": "cpp",
+        "ratio": "cpp",
+        "complex": "cpp",
+        "iomanip": "cpp"
     }
 }
