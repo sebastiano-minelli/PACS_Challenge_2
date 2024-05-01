@@ -340,8 +340,23 @@ public:
         }
         else if  constexpr (OrderL == StorageOrder::ROW_WISE && OrderR == StorageOrder::COLUMN_WISE)
         {
-            
-            
+            auto value_it = LM.compressed_mat.values.cbegin();
+            auto outer_it = LM.compressed_mat.outer_indexes.cbegin();
+            std::size_t start = static_cast<std::size_t>(0);
+            for(std::size_t i = 0; i < n_rows; ++i)
+            {
+                auto end = LM.compressed_mat.inner_indexes[i + 1];
+                for(std::size_t j = start; j < end; ++j)
+                {
+                    // check if there is a corresponding index fot the vector (used std::binary_search since n_elements is sorted by construction)
+                    if(std::binary_search(v.compressed_mat.outer_indexes.cbegin(), v.compressed_mat.outer_indexes.cend(), *outer_it))
+                        result[i] += (*values_it) * v.compressed_mat.values[*outer_it];
+                    ++value_it;
+                    ++outer_it;
+                }
+                start = end;
+            }
+            return result;
         }
         else if constexpr (OrderL == StorageOrder::COLUMN_WISE && OrderR == StorageOrder::ROW_WISE)
         {
