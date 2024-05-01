@@ -213,240 +213,6 @@ public:
         return dynamic_mat(i, j);
     }
 
-    template<typename TT, StorageOrder OrderL>
-    friend std::vector<TT> operator*(Matrix<TT, OrderL>& mat, std::vector<TT> & v)
-    {
-        if(mat.n_cols != v.size())
-            throw std::invalid_argument("Matrix-vector multiplication: invalid dimensions");
-        //else
-        const auto dim = mat.n_rows;
-        std::vector<TT> result(dim, static_cast<TT>(0)); // cast dim elements to 0
-
-        if(mat.compressed)
-        {
-            auto value_it = mat.compressed_mat.values.cbegin();
-            auto outer_it = mat.compressed_mat.outer_indexes.cbegin();
-
-            if constexpr (OrderL == StorageOrder::ROW_WISE)
-            {        
-                std::size_t start = static_cast<std::size_t>(0);                   
-                for(std::size_t i = 0; i < mat.n_rows; ++i)
-                {
-                    std::size_t end = mat.compressed_mat.inner_indexes[i + 1];
-
-                    for(std::size_t j = start; j < end; ++j)
-                    {
-                        auto value = *value_it;
-                        auto outer = *outer_it;
-                        result[i] += value * v[outer];
-                        ++value_it;
-                        ++outer_it;
-                    }
-                    start = end;
-                }
-            }
-            else // if OrderL == StorageOrder::COLUMN_WISE
-            {
-                std::size_t start = static_cast<std::size_t>(0);
-                for(std::size_t i = 0; i < mat.n_cols; ++i)
-                {
-                    std::size_t end = mat.compressed_mat.inner_indexes[i + 1];
-                    for(std::size_t j = start; j < end; ++j)
-                    {    
-                        auto value = *value_it;
-                        auto outer = *outer_it;
-                        result[outer] += (value) * v[i];
-                        ++value_it;
-                        ++outer_it;
-                    }
-                    start = end;
-                }
-            }
-        }
-        else if(!mat.compressed)
-        {
-            for(auto it = mat.dynamic_mat.elements.begin(); it != mat.dynamic_mat.elements.end(); ++it)
-                result[it->first[0]] += it->second * v[it->first[1]];                
-        }
-
-        return result;
-    }
-
-    /*
-    Overload of the operator * for the multiplication of a Matrix type with a Matrix type (of just one column)
-    Matrix by matrix multiplication
-    I considered just the case of compressed matrices, if a matrix isn't compress I compress it firstly
-    The function returns a std::vector<T>
-    */
-   template<typename TT, StorageOrder OrderL, StorageOrder OrderR>
-   friend std::vector<TT> operator*(Matrix<TT, OrderL>& LM, Matrix<TT, OrderR>& v)
-    {
-        if(LM.n_cols != v.n_rows)
-            throw std::invalid_argument("Matrix-Vector multiplication: invalid dimensions");
-        if(v.n_cols != static_cast<std::size_t>(1))
-            throw std::invalid_argument("Matrix-Vector multiplication: invalid dimensions, the second operand must be a column vector");
-        //else
-
-        // check if matrices are uncompressed and compress them if so
-        if(!LM.compressed)
-        {
-            std::cerr << "Warning: matrix times matrix multiplication" << std::endl;
-            std::cerr << "Left matrix is uncompressed, it will be left in a compressed state" << std::endl;
-            LM.compress();
-        }
-        if(!v.compressed)
-        {
-            std::cerr << "Warning: matrix times matrix multiplication" << std::endl;
-            std::cerr << "Right matrix is uncompressed, it will be left in a compressed state" << std::endl;
-            v.compress();
-        }
-        
-        const auto n_rows = LM.n_rows; // rows of the returned matrix
-        const auto n_cols = LM.n_cols; // column of the returned matrix
-        std::vector<TT> result(n_rows, static_cast<TT>(0)); // vector to be returned (filled with zeros)
-
-        // implementing multiplication based on the storage method
-        if constexpr (OrderL == StorageOrder::ROW_WISE && OrderR == StorageOrder::ROW_WISE)
-        {
-            std::vector<TT> n_elements; // number of elements in each row (for v) (stores just the row indexes that contain an element)
-            n_elements.reserve(n_rows); // at most isn't sparse
-
-            // Store the indexes of the rows that contain an element
-            for(std::size_t i = 0; i < n_rows; ++i)
-            {
-                // check if the number of elements has changed
-                if(v.compressed_mat.inner_indexes[i + 1] != v.compressed_mat.inner_indexes[i])
-                    n_elements.push_back(i);
-            }
-
-            // compute the matrix-vector product
-            auto value_it = LM.compressed_mat.values.cbegin();
-            auto outer_it = LM.compressed_mat.outer_indexes.cbegin();
-            std::size_t start = static_cast<std::size_t>(0);
-            std::size_t end = static_cast<std::size_t>(0);
-            for(std::size_t i = 0; i < n_rows; ++i)
-            {
-                end = LM.compressed_mat.inner_indexes[i + 1];
-                for(std::size_t j = start; j < end; ++j)
-                {   
-                    // check if there is a corresponding index fot the vector (used std::lower_bound to reduce computational complexity)
-                    // obtain the first greater or equal element
-                    auto it = std::ranges::lower_bound(n_elements.cbegin(), n_elements.cend(), *outer_it);
-                    if(it != n_elements.cend() && *it == *outer_it) // check if it is actually equal
-                    {
-                        auto index = std::ranges::distance(n_elements.cbegin(), it); // compute the right index for v
-                        result[i] += (*value_it) * v.compressed_mat.values[index];
-                    }
-                    ++value_it;
-                    ++outer_it;
-                }
-                start = end;
-            }
-        }
-        else if  constexpr (OrderL == StorageOrder::ROW_WISE && OrderR == StorageOrder::COLUMN_WISE)
-        {
-            auto value_it = LM.compressed_mat.values.cbegin();
-            auto outer_it = LM.compressed_mat.outer_indexes.cbegin();
-            std::size_t start = static_cast<std::size_t>(0);
-            for(std::size_t i = 0; i < n_rows; ++i)
-            {
-                auto end = LM.compressed_mat.inner_indexes[i + 1];
-                for(std::size_t j = start; j < end; ++j)
-                {
-                    // check if there is a corresponding index fot the vector (used std::lower_bound to reduce computational complexity)
-                    // obtain the first greater or equal element
-                    auto it = std::ranges::lower_bound(v.compressed_mat.outer_indexes.cbegin(), v.compressed_mat.outer_indexes.cend(), *outer_it);
-                    if(it != v.compressed_mat.outer_indexes.cend() && *it == *outer_it)
-                    {
-                        auto index = std::ranges::distance(v.compressed_mat.outer_indexes.cbegin(), it); // compute the right index for v
-                        result[i] += (*value_it) * v.compressed_mat.values[index];
-                    }
-                    ++value_it;
-                    ++outer_it;
-                }
-                start = end;
-            }
-        }
-        else if constexpr (OrderL == StorageOrder::COLUMN_WISE && OrderR == StorageOrder::ROW_WISE)
-        {
-            std::vector<TT> n_elements; // number of elements in each row (for v) (stores just the row indexes that contain an element)
-            n_elements.reserve(n_rows); // at most isn't sparse
-
-            // Store the indexes of the rows that contain an element
-            for(std::size_t i = 0; i < n_rows; ++i)
-            {
-                // check if the number of elements has changed
-                if(v.compressed_mat.inner_indexes[i + 1] != v.compressed_mat.inner_indexes[i])
-                    n_elements.push_back(i);
-            }
-
-            bool product = false;
-            std::size_t index = static_cast<std::size_t>(0);
-            auto value_it = LM.compressed_mat.values.cbegin();
-            auto outer_it = LM.compressed_mat.outer_indexes.cbegin();
-            std::size_t start = static_cast<std::size_t>(0); // first element is always zero
-            for(std::size_t j = 0; j < n_cols; ++j)
-            {
-                // check if there is a corresponding index fot the vector (used std::lower_bound to reduce computational complexity)
-                // obtain the first greater or equal element
-                auto it = std::ranges::lower_bound(n_elements.cbegin(), n_elements.cend(), j);
-                if(it != n_elements.cend() && *it == j) // check if it is actually equal
-                {
-                    product = true;
-                    index = std::ranges::distance(n_elements.cbegin(), it); // compute the right index for v
-                }
-                else
-                    product = false; // skip for loop (no need to compute the product since it is zero)
-                    
-                auto end = LM.compressed_mat.inner_indexes[j + 1];
-                for(std::size_t i = start; i < end; ++i)
-                {
-                    if(product) // take the product if we can, otherwise just skip elements
-                        result[*outer_it] += (*value_it) * v.compressed_mat.values[index];
-                    ++value_it;
-                    ++outer_it;
-                }
-                start = end;
-            }
-        }
-        else // if constexpr (OrderL == StorageOrder::COLUMN_WISE && OrderR == StorageOrder::COLUMN_WISE)
-        {
-            bool product = false;
-            std::size_t index = static_cast<std::size_t>(0);
-            auto value_it = LM.compressed_mat.values.cbegin();
-            auto outer_it = LM.compressed_mat.outer_indexes.cbegin();
-            std::size_t start = static_cast<std::size_t>(0); // first element is always zero
-
-            for(std::size_t j = 0; j < n_cols; ++j)
-            {
-                // check if there is a corresponding index fot the vector (used std::lower_bound to reduce computational complexity)
-                // obtain the first greater or equal element
-                auto it = std::ranges::lower_bound(v.compressed_mat.inner_indexes.cbegin(), v.compressed_mat.inner_indexes.cend(), j);
-                if(it != v.compressed_mat.inner_indexes.cend() && *it == j) // check if it is actually equal
-                {
-                    product = true;
-                    index = std::ranges::distance(v.compressed_mat.inner_indexes.cbegin(), it); // compute the right index for v
-                }
-                else
-                    product = false; // skip for loop (no need to compute the product since it is zero)
-
-                auto end = LM.compressed_mat.inner_indexes[j + 1];
-                for(std::size_t i = start; i < end; ++i)
-                {
-                    if(product) // take the product if we can, otherwise just skip elements
-                        result[*outer_it] += (*value_it) * v.compressed_mat.values[index];
-                    ++value_it;
-                    ++outer_it;
-                }
-                start = end;
-            }
-            
-        }
-
-        return result;
-    }
-
-
 
     // Computes the norm (One, Infinity or Frobenius) of the matrix
     template<NormType norm_type>
@@ -673,7 +439,254 @@ public:
         dynamic_mat = DynamicMatrix<T, Order>(std::move(file_mat));
     }
 
+    template<typename TT, StorageOrder OrderL>
+    friend std::vector<TT> operator*(Matrix<TT, OrderL>& mat, std::vector<TT> & v);
+
+    /*
+    Overload of the operator * for the multiplication of a Matrix type with a Matrix type (of just one column)
+    Matrix by matrix multiplication
+    I considered just the case of compressed matrices, if a matrix isn't compress I compress it firstly
+    The function returns a std::vector<T>
+    */
+    template<typename TT, StorageOrder OrderL, StorageOrder OrderR>
+    friend std::vector<TT> operator*(Matrix<TT, OrderL>& LM, Matrix<TT, OrderR>& v);
+
 }; // end of class Matrix
+
+
+
+
+// Functions definitions
+
+template<typename TT, StorageOrder OrderL>
+std::vector<TT> operator*(Matrix<TT, OrderL>& mat, std::vector<TT> & v)
+{
+    if(mat.n_cols != v.size())
+        throw std::invalid_argument("Matrix-vector multiplication: invalid dimensions");
+    //else
+    const auto dim = mat.n_rows;
+    std::vector<TT> result(dim, static_cast<TT>(0)); // cast dim elements to 0
+
+    if(mat.compressed)
+    {
+        auto value_it = mat.compressed_mat.values.cbegin();
+        auto outer_it = mat.compressed_mat.outer_indexes.cbegin();
+
+        if constexpr (OrderL == StorageOrder::ROW_WISE)
+        {        
+            std::size_t start = static_cast<std::size_t>(0);                   
+            for(std::size_t i = 0; i < mat.n_rows; ++i)
+            {
+                std::size_t end = mat.compressed_mat.inner_indexes[i + 1];
+
+                for(std::size_t j = start; j < end; ++j)
+                {
+                    auto value = *value_it;
+                    auto outer = *outer_it;
+                    result[i] += value * v[outer];
+                    ++value_it;
+                    ++outer_it;
+                }
+                start = end;
+            }
+        }
+        else // if OrderL == StorageOrder::COLUMN_WISE
+        {
+            std::size_t start = static_cast<std::size_t>(0);
+            for(std::size_t i = 0; i < mat.n_cols; ++i)
+            {
+                std::size_t end = mat.compressed_mat.inner_indexes[i + 1];
+                for(std::size_t j = start; j < end; ++j)
+                {    
+                    auto value = *value_it;
+                    auto outer = *outer_it;
+                    result[outer] += (value) * v[i];
+                    ++value_it;
+                    ++outer_it;
+                }
+                start = end;
+            }
+        }
+    }
+    else if(!mat.compressed)
+    {
+        for(auto it = mat.dynamic_mat.elements.begin(); it != mat.dynamic_mat.elements.end(); ++it)
+            result[it->first[0]] += it->second * v[it->first[1]];                
+    }
+
+    return result;
+}
+
+
+
+
+template<typename TT, StorageOrder OrderL, StorageOrder OrderR>
+std::vector<TT> operator*(Matrix<TT, OrderL>& LM, Matrix<TT, OrderR>& v)
+{   
+    if(LM.n_cols != v.n_rows)
+        throw std::invalid_argument("Matrix-Vector multiplication: invalid dimensions");
+    if(v.n_cols != static_cast<std::size_t>(1))
+        throw std::invalid_argument("Matrix-Vector multiplication: invalid dimensions, the second operand must be a column vector");
+    //else
+
+    // check if matrices are uncompressed and compress them if so
+    if(!LM.compressed)
+    {
+        std::cerr << "Warning: matrix times matrix multiplication" << std::endl;
+        std::cerr << "Left matrix is uncompressed, it will be left in a compressed state" << std::endl;
+        LM.compress();
+    }
+    if(!v.compressed)
+    {
+        std::cerr << "Warning: matrix times matrix multiplication" << std::endl;
+        std::cerr << "Right matrix is uncompressed, it will be left in a compressed state" << std::endl;
+        v.compress();
+    }
+    
+    const auto n_rows = LM.n_rows; // rows of the returned matrix
+    const auto n_cols = LM.n_cols; // column of the returned matrix
+    std::vector<TT> result(n_rows, static_cast<TT>(0)); // vector to be returned (filled with zeros)
+
+    // implementing multiplication based on the storage method
+    if constexpr (OrderL == StorageOrder::ROW_WISE && OrderR == StorageOrder::ROW_WISE)
+    {
+        std::vector<TT> n_elements; // number of elements in each row (for v) (stores just the row indexes that contain an element)
+        n_elements.reserve(n_rows); // at most isn't sparse
+
+        // Store the indexes of the rows that contain an element
+        for(std::size_t i = 0; i < n_rows; ++i)
+        {
+            // check if the number of elements has changed
+            if(v.compressed_mat.inner_indexes[i + 1] != v.compressed_mat.inner_indexes[i])
+                n_elements.push_back(i);
+        }
+
+        // compute the matrix-vector product
+        auto value_it = LM.compressed_mat.values.cbegin();
+        auto outer_it = LM.compressed_mat.outer_indexes.cbegin();
+        std::size_t start = static_cast<std::size_t>(0);
+        std::size_t end = static_cast<std::size_t>(0);
+        for(std::size_t i = 0; i < n_rows; ++i)
+        {
+            end = LM.compressed_mat.inner_indexes[i + 1];
+            for(std::size_t j = start; j < end; ++j)
+            {   
+                // check if there is a corresponding index fot the vector (used std::lower_bound to reduce computational complexity)
+                // obtain the first greater or equal element
+                auto it = std::ranges::lower_bound(n_elements.cbegin(), n_elements.cend(), *outer_it);
+                if(it != n_elements.cend() && *it == *outer_it) // check if it is actually equal
+                {
+                    auto index = std::ranges::distance(n_elements.cbegin(), it); // compute the right index for v
+                    result[i] += (*value_it) * v.compressed_mat.values[index];
+                }
+                ++value_it;
+                ++outer_it;
+            }
+            start = end;
+        }
+    }
+    else if constexpr (OrderL == StorageOrder::ROW_WISE && OrderR == StorageOrder::COLUMN_WISE)
+    {
+        auto value_it = LM.compressed_mat.values.cbegin();
+        auto outer_it = LM.compressed_mat.outer_indexes.cbegin();
+        std::size_t start = static_cast<std::size_t>(0);
+        for(std::size_t i = 0; i < n_rows; ++i)
+        {
+            auto end = LM.compressed_mat.inner_indexes[i + 1];
+            for(std::size_t j = start; j < end; ++j)
+            {
+                // check if there is a corresponding index fot the vector (used std::lower_bound to reduce computational complexity)
+                // obtain the first greater or equal element
+                auto it = std::ranges::lower_bound(v.compressed_mat.outer_indexes.cbegin(), v.compressed_mat.outer_indexes.cend(), *outer_it);
+                if(it != v.compressed_mat.outer_indexes.cend() && *it == *outer_it)
+                {
+                    auto index = std::ranges::distance(v.compressed_mat.outer_indexes.cbegin(), it); // compute the right index for v
+                    result[i] += (*value_it) * v.compressed_mat.values[index];
+                }
+                ++value_it;
+                ++outer_it;
+            }
+            start = end;
+        }
+    }
+    else if constexpr (OrderL == StorageOrder::COLUMN_WISE && OrderR == StorageOrder::ROW_WISE)
+    {
+        std::vector<TT> n_elements; // number of elements in each row (for v) (stores just the row indexes that contain an element)
+        n_elements.reserve(n_rows); // at most isn't sparse
+
+        // Store the indexes of the rows that contain an element
+        for(std::size_t i = 0; i < n_rows; ++i)
+        {
+            // check if the number of elements has changed
+            if(v.compressed_mat.inner_indexes[i + 1] != v.compressed_mat.inner_indexes[i])
+                n_elements.push_back(i);
+        }
+
+        bool product = false;
+        std::size_t index = static_cast<std::size_t>(0);
+        auto value_it = LM.compressed_mat.values.cbegin();
+        auto outer_it = LM.compressed_mat.outer_indexes.cbegin();
+        std::size_t start = static_cast<std::size_t>(0); // first element is always zero
+        for(std::size_t j = 0; j < n_cols; ++j)
+        {
+            // check if there is a corresponding index fot the vector (used std::lower_bound to reduce computational complexity)
+            // obtain the first greater or equal element
+            auto it = std::ranges::lower_bound(n_elements.cbegin(), n_elements.cend(), j);
+            if(it != n_elements.cend() && *it == j) // check if it is actually equal
+            {
+                product = true;
+                index = std::ranges::distance(n_elements.cbegin(), it); // compute the right index for v
+            }
+            else
+                product = false; // skip for loop (no need to compute the product since it is zero)
+
+            auto end = LM.compressed_mat.inner_indexes[j + 1];
+            for(std::size_t i = start; i < end; ++i)
+            {
+                if(product) // take the product if we can, otherwise just skip elements
+                    result[*outer_it] += (*value_it) * v.compressed_mat.values[index];
+                ++value_it;
+                ++outer_it;
+            }
+            start = end;
+        }
+    }
+    else // if constexpr (OrderL == StorageOrder::COLUMN_WISE && OrderR == StorageOrder::COLUMN_WISE)
+    {
+        bool product = false;
+        std::size_t index = static_cast<std::size_t>(0);
+        auto value_it = LM.compressed_mat.values.cbegin();
+        auto outer_it = LM.compressed_mat.outer_indexes.cbegin();
+        std::size_t start = static_cast<std::size_t>(0); // first element is always zero
+
+        for(std::size_t j = 0; j < n_cols; ++j)
+        {
+            // check if there is a corresponding index fot the vector (used std::lower_bound to reduce computational complexity)
+            // obtain the first greater or equal element
+            auto it = std::ranges::lower_bound(v.compressed_mat.outer_indexes.cbegin(), v.compressed_mat.outer_indexes.cend(), j);
+            if(it != v.compressed_mat.outer_indexes.cend() && *it == j) // check if it is actually equal
+            {
+                product = true;
+                index = std::ranges::distance(v.compressed_mat.outer_indexes.cbegin(), it); // compute the right index for v
+            }
+            else
+                product = false; // skip for loop (no need to compute the product since it is zero)
+
+            auto end = LM.compressed_mat.inner_indexes[j + 1];
+            for(std::size_t i = start; i < end; ++i)
+            {
+                if(product) // take the product if we can, otherwise just skip elements
+                    result[*outer_it] += (*value_it) * v.compressed_mat.values[index];
+                ++value_it;
+                ++outer_it;
+            }
+            start = end;
+        }
+        
+    }
+
+    return result;
+}
 
 } // end namespace algebra
 

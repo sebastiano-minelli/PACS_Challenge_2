@@ -68,8 +68,8 @@ int main(int argc, char *argv[])
 
 
     //////// performing multiplication tests (matrix by vector but with Matrix-Matrix types) ///////////////////
-    constexpr algebra::StorageOrder ordering_mat = algebra::StorageOrder::ROW_WISE; // storage method for the matrix
-    constexpr algebra::StorageOrder ordering_vec = algebra::StorageOrder::ROW_WISE; // storage method for the vector
+    constexpr algebra::StorageOrder ordering_mat = algebra::StorageOrder::COLUMN_WISE; // storage method for the matrix
+    constexpr algebra::StorageOrder ordering_vec = algebra::StorageOrder::COLUMN_WISE; // storage method for the vector
     algebra::Matrix<var_type, ordering_mat> LM;
     algebra::Matrix<var_type, ordering_vec> RM;
     LM.parse_from_file(filename);
@@ -81,9 +81,9 @@ int main(int argc, char *argv[])
     M_res = std::move(LM * RM);
     std::cout << "----- Multiplication Matrix-Matrix type test -----" << std::endl;
     std::cout << "Matrix storing method:     " << (
-                ordering == algebra::StorageOrder::ROW_WISE ? "'ROW-WISE'" : "'COLUMN-WISE'") << std::endl;
+                ordering_mat == algebra::StorageOrder::ROW_WISE ? "'ROW-WISE'" : "'COLUMN-WISE'") << std::endl;
     std::cout << "Vector storing method:     " << (
-                ordering == algebra::StorageOrder::ROW_WISE ? "'ROW-WISE'" : "'COLUMN-WISE'") << std::endl;
+                ordering_vec == algebra::StorageOrder::ROW_WISE ? "'ROW-WISE'" : "'COLUMN-WISE'") << std::endl;
     std::cout << "Resulting vector:" << std::endl;
     for(std::size_t i = 0; i < M_res.size(); ++i)
     {
