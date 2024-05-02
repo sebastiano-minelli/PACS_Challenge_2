@@ -94,9 +94,11 @@ int main(int argc, char *argv[])
                 ordering_mat == algebra::StorageOrder::ROW_WISE ? "'ROW-WISE'" : "'COLUMN-WISE'") << std::endl;
     std::cout << "Vector storing method:     " << (
                 ordering_vec == algebra::StorageOrder::ROW_WISE ? "'ROW-WISE'" : "'COLUMN-WISE'") << std::endl;
+    // uncompress matrices to call the call operator that can print zeros (otherwise we get an error)                
     LM.uncompress();
     RM.uncompress();
-    std::cout << "Matrix-vector layout:             " << std::endl;    
+    std::cout << std::endl;
+    std::cout << "Matrix layout:                   " << std::endl;    
     for(std::size_t i = 0; i < LM.rows(); ++i)
     {
         std::cout << "                           | "; 
@@ -104,14 +106,23 @@ int main(int argc, char *argv[])
         {
             std::cout << "(" << std::fixed << std::setprecision(1) << std::setw(4) << LM(i, j) << ") ";
         }
-        std::cout << "|  | (" << std::fixed << std::setprecision(1) << std::setw(4) << RM(i, 0) << ") |"; 
+        std::cout << " |" << std::endl;
+    }
+
+    std::cout << "Vector layout:                   " << std::endl;    
+    for(std::size_t i = 0; i < RM.rows(); ++i)
+    {
+        std::cout << "                           | ";
+        std::cout << "(" << std::fixed << std::setprecision(1) << std::setw(4) << RM(i, 0) << ") |"; 
         std::cout << std::endl;
     }
 
     std::cout << "Resulting vector:" << std::endl;
     for(std::size_t i = 0; i < M_res.size(); ++i)
     {
-        std::cout << "                           [" << i << "]: " << M_res[i] << std::endl;
+        std::cout << "                           | ";
+        std::cout << "(" << std::fixed << std::setprecision(1) << std::setw(4) << M_res[i] << ") |"; 
+        std::cout << std::endl;
     }
     std::cout << std::endl;
 
