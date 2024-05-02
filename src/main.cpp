@@ -33,6 +33,7 @@ int main(int argc, char *argv[])
     std::string filename_vector = "../files/vector_sparse.mtx"; // sparse vector for the matrix multiplication
 
     M.parse_from_file(filename);
+    std::cout << "Matrix read from file:     '" << filename << "'" << std::endl;
     std::cout << "Number of rows:            " << M.rows() << std::endl;
     std::cout << "Number of columns:         " << M.columns() << std::endl;
     std::cout << "Storing method:            " << (
@@ -73,6 +74,7 @@ int main(int argc, char *argv[])
     }
 
     std::cout << "----- Multiplication performance test results -----" << std::endl;
+    std::cout << "Matrix read from file:     '" << filename << "'" << std::endl;
     std::cout << std::fixed << std::setprecision(8);
     std::cout << "Uncompressed best time:    " << time_unc << " microseconds" << std::endl;
     std::cout << "Compressed best time:      " << time_comp << " microseconds" << std::endl;
@@ -90,6 +92,8 @@ int main(int argc, char *argv[])
     std::vector<var_type> M_res; 
     M_res = std::move(LM * RM);
     std::cout << "----- Multiplication Matrix-Matrix type test -----" << std::endl;
+    std::cout << "Matrix read from file:     '" << filename_mat << "'" << std::endl;
+    std::cout << "Vector read from file:     '" << filename_vector << "'" << std::endl;
     std::cout << "Matrix storing method:     " << (
                 ordering_mat == algebra::StorageOrder::ROW_WISE ? "'ROW-WISE'" : "'COLUMN-WISE'") << std::endl;
     std::cout << "Vector storing method:     " << (
@@ -130,6 +134,7 @@ int main(int argc, char *argv[])
 
     ///////// performing norm tests ////////////////////
     std::cout << "--------------- Norms test results ----------------" << std::endl;
+    std::cout << "Matrix read from file:     '" << filename << "'" << std::endl;
     // One norm
     M.uncompress();
     var_type norm11 = M.norm<norm_type1>();
