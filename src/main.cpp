@@ -28,9 +28,9 @@ int main(int argc, char *argv[])
 
     algebra::Matrix<var_type, ordering> M;
 
-    std::string filename = "../files/lnsp_131.mtx"; // uncomment this line to test with 'lnsp_131.mtx' file
-    std::string filename_mat = "../files/matrix1.mtx"; // uncomment this line to test with 'matrix1.mtx' file
-    std::string filename_vector = "../files/vector_sparse.mtx"; // parse a sparse vector
+    std::string filename = "../files/lnsp_131.mtx"; // matrix for the multiplication performance test
+    std::string filename_mat = "../files/matrix1.mtx"; // matrix for the multiplication test (Matrix -Matrix type)
+    std::string filename_vector = "../files/vector_sparse.mtx"; // sparse vector for the matrix multiplication
 
     M.parse_from_file(filename);
     std::cout << "Number of rows:            " << M.rows() << std::endl;
@@ -94,6 +94,20 @@ int main(int argc, char *argv[])
                 ordering_mat == algebra::StorageOrder::ROW_WISE ? "'ROW-WISE'" : "'COLUMN-WISE'") << std::endl;
     std::cout << "Vector storing method:     " << (
                 ordering_vec == algebra::StorageOrder::ROW_WISE ? "'ROW-WISE'" : "'COLUMN-WISE'") << std::endl;
+    LM.uncompress();
+    RM.uncompress();
+    std::cout << "Matrix-vector layout:             " << std::endl;    
+    for(std::size_t i = 0; i < LM.rows(); ++i)
+    {
+        std::cout << "                           | "; 
+        for(std::size_t j = 0; j < LM.columns(); ++j)
+        {
+            std::cout << "(" << std::fixed << std::setprecision(1) << std::setw(4) << LM(i, j) << ") ";
+        }
+        std::cout << "|  | (" << std::fixed << std::setprecision(1) << std::setw(4) << RM(i, 0) << ") |"; 
+        std::cout << std::endl;
+    }
+
     std::cout << "Resulting vector:" << std::endl;
     for(std::size_t i = 0; i < M_res.size(); ++i)
     {
