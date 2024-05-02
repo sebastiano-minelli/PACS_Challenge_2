@@ -1,5 +1,5 @@
-#ifndef HH_MATRIX_BASE_HH
-#define HH_MATRIX_BASE_HH
+#ifndef HH_MATRIX_HH
+#define HH_MATRIX_HH
 
 #include <fstream>
 #include <sstream>
@@ -23,7 +23,7 @@ private:
     CompressedMatrix<T, Order> compressed_mat{}; // compressed matrix data
 
 public:
-
+    ////// METHODS ///////
     Matrix() = default;
 
     Matrix(const std::size_t nrows, const std::size_t ncols) // create a matrix, set it to uncompressed state (even if it is empty)
@@ -59,15 +59,14 @@ public:
     template<NormType norm_type>
     const T norm() const; // Computes the norm (One, Infinity or Frobenius) of the matrix
 
-    void parse_from_file(const std::string & filename); // parse a matrix from a file (in sparse matrix format)
+    void parse_from_file(const std::string & filename); // parse a matrix from a file (in sparse matrix format) store in uncompressed format
 
     template<typename TT, StorageOrder OrderL>
     friend std::vector<TT> operator*(Matrix<TT, OrderL>& mat, std::vector<TT> & v); // multiplication matrix by vector
 
     /*
     Overload of the operator * for the multiplication of a Matrix type with a Matrix type (of just one column)
-    Matrix by matrix multiplication
-    I considered just the case of compressed matrices, if a matrix isn't compress I compress it firstly
+    I considered just the case of compressed matrices, if a matrix isn't compress I compress it first
     The function returns a std::vector<T>
     */
     template<typename TT, StorageOrder OrderL, StorageOrder OrderR>
@@ -616,7 +615,7 @@ std::vector<TT> operator*(Matrix<TT, OrderL>& LM, Matrix<TT, OrderR>& v)
             auto end = LM.compressed_mat.inner_indexes[i + 1];
             for(std::size_t j = start; j < end; ++j)
             {
-                // check if there is a corresponding index fot the vector (used std::lower_bound to reduce computational complexity)
+                // check if there is a corresponding index for the vector (used std::lower_bound to reduce computational complexity)
                 // obtain the first greater or equal element
                 auto it = std::ranges::lower_bound(v.compressed_mat.outer_indexes.cbegin(), v.compressed_mat.outer_indexes.cend(), *outer_it);
                 if(it != v.compressed_mat.outer_indexes.cend() && *it == *outer_it)

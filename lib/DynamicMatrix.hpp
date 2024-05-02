@@ -16,6 +16,7 @@ using elements_type = typename algebra::ElementsTypeSelection<T, Order>::type; /
 public:
     elements_type elements{}; // elements
 
+    ////// METHODS ///////
     DynamicMatrix() = default;
     
     // copy/move constructor
@@ -50,7 +51,7 @@ public:
         return iter->second;
     }
 
-    void resize(const std::size_t nrows, const std::size_t ncols)
+    void resize(const std::size_t nrows, const std::size_t ncols) // resizes the matrix and erase elements out of range
     {
         elements_type new_elements;
 

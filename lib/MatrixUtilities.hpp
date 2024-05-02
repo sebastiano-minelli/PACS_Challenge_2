@@ -1,5 +1,5 @@
-#ifndef HH_MATRIX_TRAITS_HH
-#define HH_MATRIX_TRAITS_HH
+#ifndef HH_MATRIX_UTILITIES_HH
+#define HH_MATRIX_UTILITIES_HH
 
 #include <iostream>
 #include <map>
