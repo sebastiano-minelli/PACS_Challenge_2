@@ -12,7 +12,7 @@ enum StorageOrder
     COLUMN_WISE
 };
 
-// Enumerator that describes the possible norms
+// Enumerator that lists the possible norms
 enum NormType
 {
     One,
