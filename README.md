@@ -1,5 +1,5 @@
 ### Second challenge  
-This is the folder containing the code for second challenge of PACS course, there are four subfolders:  
+This is the folder containing the code for the second challenge of PACS course, there are four subfolders:  
 - **doc**: it contains just the challenge pdf
 - **lib**: it contains the header files
 - **src**: it contains *main.cpp* and the *Makefile* to run the program
@@ -35,6 +35,7 @@ The Makefile is set to compile in optimized mode, to change that just write *mak
 
 **Useful notes**:  
 More about *main.cpp* tests:
+- Parsing test: just parses a matrix from a file and prints its information
 - Multiplication performance test: it tests if matrix-vector multiplication is faster in the compressed or uncompressed format (one can change the row-wise column-wise storage modifying the variable inside *main.cpp*)
 - Multiplication correctness test: it just evaluates matrix-vector multiplication to test if it is correct (the vector in this case is a *Matrix* type)
 - Norm test: it just shows all the possible norms for a matrix, actually it computes all the norms both in the compress and uncompress state (the results should be equal in both cases)
