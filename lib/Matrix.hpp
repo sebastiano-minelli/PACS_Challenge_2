@@ -460,7 +460,7 @@ void Matrix<T, Order>::parse_from_file(const std::string & filename)
     while(std::getline(file, line) )
     {
         // If the line starts with '%' we go on
-        if(!line.empty() && line[0] == '%') // unnecessary probably since there are no comments
+        if(line.empty() || line[0] == '%') // unnecessary probably since there are no comments
             continue;
         std::istringstream word(line);
         std::size_t i;
