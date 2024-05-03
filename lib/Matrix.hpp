@@ -346,7 +346,7 @@ const T Matrix<T, Order>::norm() const
                 auto value_it = compressed_mat.values.cbegin();
                 auto outer_it = compressed_mat.outer_indexes.cbegin();     
                 std::size_t start = static_cast<std::size_t>(0);                   
-                for(std::size_t i = 0; i < n_cols; ++i)
+                for(std::size_t i = 0; i < n_rows; ++i)
                 {
                     std::size_t end = compressed_mat.inner_indexes[i + 1];
 
