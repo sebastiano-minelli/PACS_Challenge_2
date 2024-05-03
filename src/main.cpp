@@ -99,10 +99,8 @@ int main(int argc, char *argv[])
     algebra::Matrix<var_type, ordering_vector> RM;
     LM.parse_from_file(filename_mat);
     RM.parse_from_file(filename_vector);
-    // compress matrices
+    // compress matrices (if not operator * will do it on its own printing a message)
     LM.compress();
-    RM.compress();
-    RM.uncompress();
     RM.compress();
     std::vector<var_type> M_res; // results
     M_res = std::move(LM * RM); // multiplication
