@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
     constexpr algebra::StorageOrder ordering_vector = algebra::StorageOrder::ROW_WISE; // storage method for the vector
 
     // Norm test
-    std::string filename_norms = "../files/matrix1.mtx"; // matrix for the norm test
+    std::string filename_norms = "../files/lnsp_131.mtx"; // matrix for the norm test
     constexpr algebra::StorageOrder ordering_norms = algebra::StorageOrder::ROW_WISE; // storage method for the matrix
     constexpr algebra::NormType norm_type1 = algebra::NormType::One; // norm type one
     constexpr algebra::NormType norm_type2 = algebra::NormType::Infinity; // norm type two
@@ -164,12 +164,12 @@ int main(int argc, char *argv[])
                 norm_type1 == algebra::NormType::One ? "'ONE'" : 
                     norm_type1 == algebra::NormType::Infinity ? "'INFINITY'" : "'FROBENIUS'") << std::endl;
     std::cout << "Uncompressed state" << std::endl;
-    std::cout << "Norm:                      " << norm11 << std::endl;
+    std::cout << "Norm:                      " << std::scientific << std::setprecision(16) << norm11 << std::endl;
 
     M_norms.compress();
     var_type norm12 = M_norms.norm<norm_type1>();
     std::cout << "Compressed state" << std::endl;
-    std::cout << "Norm:                      " << norm12 << std::endl;
+    std::cout << "Norm:                      " << std::scientific << std::setprecision(16) << norm12 << std::endl;
     std::cout << std::endl;
     // Infinity norm
     M_norms.uncompress();
@@ -178,12 +178,12 @@ int main(int argc, char *argv[])
                 norm_type2 == algebra::NormType::One ? "'ONE'" : 
                     norm_type2 == algebra::NormType::Infinity ? "'INFINITY'" : "'FROBENIUS'") << std::endl;
     std::cout << "Uncompressed state" << std::endl;
-    std::cout << "Norm:                      " << norm21 << std::endl;
+    std::cout << "Norm:                      " << std::scientific << std::setprecision(16) << norm21 << std::endl;
 
     M_norms.compress();
     var_type norm22 = M_norms.norm<norm_type2>();
     std::cout << "Compressed state" << std::endl;
-    std::cout << "Norm:                      " << norm22 << std::endl;
+    std::cout << "Norm:                      " << std::scientific << std::setprecision(16) << norm22 << std::endl;
     std::cout << std::endl;
     // Frobenius norm
     M_norms.uncompress();
@@ -192,12 +192,12 @@ int main(int argc, char *argv[])
                 norm_type3 == algebra::NormType::One ? "'ONE'" : 
                     norm_type3 == algebra::NormType::Infinity ? "'INFINITY'" : "'FROBENIUS'") << std::endl;
     std::cout << "Uncompressed state" << std::endl;
-    std::cout << "Norm:                      " << norm31 << std::endl;
+    std::cout << "Norm:                      " << std::scientific << std::setprecision(16) << norm31 << std::endl;
 
     M_norms.compress();
     var_type norm32 = M_norms.norm<norm_type3>();
     std::cout << "Compressed state" << std::endl;
-    std::cout << "Norm:                      " << norm32 << std::endl;
+    std::cout << "Norm:                      " << std::scientific << std::setprecision(16) << norm32 << std::endl;
     std::cout << std::endl;
     
     return 0;
