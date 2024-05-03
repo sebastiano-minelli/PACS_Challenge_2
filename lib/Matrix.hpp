@@ -571,10 +571,10 @@ std::vector<TT> operator*(Matrix<TT, OrderL>& LM, Matrix<TT, OrderR>& v)
     if constexpr (OrderL == StorageOrder::ROW_WISE && OrderR == StorageOrder::ROW_WISE)
     {
         std::vector<TT> n_elements; // number of elements in each row (for v) (stores just the row indexes that contain an element)
-        n_elements.reserve(n_rows); // at most isn't sparse
+        n_elements.reserve(v.n_rows); // at most isn't sparse
 
         // Store the indexes of the rows that contain an element
-        for(std::size_t i = 0; i < n_rows; ++i)
+        for(std::size_t i = 0; i < v.n_rows; ++i)
         {
             // check if the number of elements has changed
             if(v.compressed_mat.inner_indexes[i + 1] != v.compressed_mat.inner_indexes[i])
@@ -632,10 +632,10 @@ std::vector<TT> operator*(Matrix<TT, OrderL>& LM, Matrix<TT, OrderR>& v)
     else if constexpr (OrderL == StorageOrder::COLUMN_WISE && OrderR == StorageOrder::ROW_WISE)
     {
         std::vector<TT> n_elements; // number of elements in each row (for v) (stores just the row indexes that contain an element)
-        n_elements.reserve(n_rows); // at most isn't sparse
+        n_elements.reserve(v.n_rows); // at most isn't sparse
 
         // Store the indexes of the rows that contain an element
-        for(std::size_t i = 0; i < n_rows; ++i)
+        for(std::size_t i = 0; i < v.n_rows; ++i)
         {
             // check if the number of elements has changed
             if(v.compressed_mat.inner_indexes[i + 1] != v.compressed_mat.inner_indexes[i])
