@@ -1,5 +1,5 @@
 ### Second challenge  
-This is the folder containing the code for the second challenge of PACS course, there are four subfolders:  
+This project implements the code for the second challenge of PACS course, there are four subfolders:  
 - **doc**: it contains just the challenge pdf
 - **lib**: it contains the header files
 - **src**: it contains *main.cpp* and the *Makefile* to run the program
