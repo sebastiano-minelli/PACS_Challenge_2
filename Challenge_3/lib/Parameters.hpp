@@ -10,15 +10,41 @@
 using namespace MuParserInterface;
 
 template<unsigned int DIM>
+
+/*
+BCs enumeration: 
+
+     3
+  ________
+  |      |
+4 |      | 2
+  |      | 
+  |______|
+    1
+
+*/
+
 struct Function
 {
-    std::string funString; // function string
+    std::string funString; // force function string
 
-    std::vector<std::string> dfunString; // gradient of the function string
+    std::vector<std::string> funBC_1String; // BC of the bottom boundary string
+
+    std::vector<std::string> funBC_2String; // BC of the right boundary string
+
+    std::vector<std::string> funBC_3String; // BC of the up boundary string
+
+    std::vector<std::string> funBC_4String; // BC of the left boundary string
 
     muParserXInterface<DIM> fun; // function
 
-    std::vector<muParserXInterface<DIM>> dfun; // function gradient
+    muParserXInterface<DIM> funBC_1; // function
+
+    muParserXInterface<DIM> funBC_2; // function
+
+    muParserXInterface<DIM> funBC_3; // function
+
+    muParserXInterface<DIM> funBC_4; // function
 
     std::array<double, DIM> x; // point of the domain
 };
