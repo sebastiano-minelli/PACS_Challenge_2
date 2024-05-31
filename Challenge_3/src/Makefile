@@ -7,8 +7,8 @@ CXXFLAGS ?= -std=c++20
 EXEC = main
 OBJECT = main.cpp
 COMP = main.o
-LDINC = $(PACS_EXAMPLES_PATH)/Examples/include/
-LDLIB = $(PACS_EXAMPLES_PATH)/Examples/lib/
+LDINC = $(PACS_EXAMPLES_PATH)/Examples/include/ $(PACS_EXAMPLES_PATH)/Examples/include/muparserx
+LDLIB = $(PACS_EXAMPLES_PATH)/Examples/lib/ $(PACS_EXAMPLES_PATH)/Examples/lib/libmuparserx.a
 LDNAME = pacs
 
 .PHONY = clean help debug standard optimized
