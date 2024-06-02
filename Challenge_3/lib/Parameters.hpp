@@ -59,8 +59,6 @@ struct Coefficients
   double n; // number of interavals in the grid
 };
 
-
-template<unsigned int DIM>
 class Parameters
 {
 public:
