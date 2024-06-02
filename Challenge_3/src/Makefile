@@ -1,5 +1,6 @@
 ### change PACS_EXAMPLES_PATH pasting your machine path to 'pacs-examples/' git folder
 PACS_EXAMPLES_PATH=$(shell echo $$PACS_ROOT)
+EIGEN_INC = $(shell echo $$mkEigenInc)
 
 CXX      ?= g++
 CXXFLAGS ?= -std=c++20
@@ -7,7 +8,7 @@ CXXFLAGS ?= -std=c++20
 EXEC = main
 OBJECT = main.cpp
 COMP = main.o
-LDINC = -I$(PACS_EXAMPLES_PATH)/Examples/include/muparserx -I../lib -I.
+LDINC = -I$(PACS_EXAMPLES_PATH)/Examples/include/muparserx -I$(EIGEN_INC) -I../lib -I.
 LDLIB = $(PACS_EXAMPLES_PATH)/Examples/lib/libmuparserx.a
 LDNAME = pacs
 

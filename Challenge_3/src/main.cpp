@@ -1,5 +1,6 @@
 #include "ParameterHandler.hpp"
 #include "writeVTK.hpp"
+#include "Eigen/Dense"
 #include <iostream>
 
 int main()
@@ -33,6 +34,8 @@ int main()
     }
 
     generateVTKFile("../files/output.vtk", exacSol, N, N, h, h);
+
+    Eigen::Matrix<double, N, N> L;
 
 
     return 0;
