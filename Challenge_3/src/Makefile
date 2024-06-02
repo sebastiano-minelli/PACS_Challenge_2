@@ -7,8 +7,8 @@ CXXFLAGS ?= -std=c++20
 EXEC = main
 OBJECT = main.cpp
 COMP = main.o
-LDINC = $(PACS_EXAMPLES_PATH)/Examples/include/ $(PACS_EXAMPLES_PATH)/Examples/include/muparserx
-LDLIB = $(PACS_EXAMPLES_PATH)/Examples/lib/ $(PACS_EXAMPLES_PATH)/Examples/lib/libmuparserx.a
+LDINC = -I$(PACS_EXAMPLES_PATH)/Examples/include/muparserx -I../lib -I.
+LDLIB = $(PACS_EXAMPLES_PATH)/Examples/lib/libmuparserx.a
 LDNAME = pacs
 
 .PHONY = clean help debug standard optimized
@@ -18,22 +18,22 @@ LDNAME = pacs
 .SECONDARY: $(EXEC) $(COMP)
 
 # set compilation mode
-debug: CPPFLAGS = -g -I. -I../lib -Wall -Wno-conversion-null -Wno-deprecated-declarations
+debug: CPPFLAGS = -g -Wall -Wno-conversion-null -Wno-deprecated-declarations
 debug: all
 
-standard: CPPFLAGS = -O0 -I. -I../lib -Wall -Wno-conversion-null -Wno-deprecated-declarations
+standard: CPPFLAGS = -O0 -Wall -Wno-conversion-null -Wno-deprecated-declarations
 standard: all
 
-optimized: CPPFLAGS = -O3 -I. -I../lib -Wall -Wno-conversion-null -Wno-deprecated-declarations
+optimized: CPPFLAGS = -O3 -Wall -Wno-conversion-null -Wno-deprecated-declarations
 optimized: all
 
 all: clean $(EXEC)
 
 $(EXEC): $(COMP)
-	$(CXX) $(CXXFLAGS) -L$(LDLIB) -Wl,-rpath,$(LDLIB) -l$(LDNAME) $(COMP) -o $(EXEC)
+	$(CXX) $(CXXFLAGS) $(COMP) $(LDLIB) -o $(EXEC)
 	
 $(COMP): $(OBJECT)
-	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -I$(LDINC) -c $(OBJECT)
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) $(LDINC) -c $(OBJECT)
 	
 clean:
 	$(RM) *.o $(EXEC)

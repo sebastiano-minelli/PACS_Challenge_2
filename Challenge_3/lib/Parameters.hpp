@@ -68,7 +68,7 @@ public:
     coefficients.max_it = datafile((section + "max_it").data(), 500);
     coefficients.tol_res = datafile((section + "tol_res").data(), 1.0e-5);
     coefficients.tol_x = datafile((section + "tol_x").data(), 1.0e-5);
-    coefficients.h = datafile((section + "n").data(), 10);
+    coefficients.n = datafile((section + "n").data(), 10);
 
     section = "Functions/";
     functions.funString = datafile((section + "fun").data(), "0.0 * x[1] * x[2]");
