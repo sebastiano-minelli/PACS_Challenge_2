@@ -20,7 +20,7 @@ public:
         std::cout << "      |       |" << std::endl;
         std::cout << "      4       2" << std::endl;
         std::cout << "      |       |" << std::endl;
-        std::cout << "      ----1----" << std::endl;
+        std::cout << "      ----1----" << "\n" << std::endl;
         std::cout << "- BC on 1:                      " << this->functions.funBC_1String << "\n" << std::endl;
         std::cout << "- BC on 2:                      " << this->functions.funBC_2String << "\n" << std::endl;
         std::cout << "- BC on 3:                      " << this->functions.funBC_3String << "\n" << std::endl;
