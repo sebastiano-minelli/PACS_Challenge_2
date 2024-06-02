@@ -11,16 +11,12 @@
 using namespace MuParserInterface;
 
 /*
-BCs enumeration: 
-
-     3
-  ________
-  |      |
-4 |      | 2
-  |      | 
-  |______|
-    1
-
+    Domain enumeration
+        ----3----
+        |       |
+        4       2
+        |       |
+        ----1----
 */
 
 struct Functions
@@ -56,7 +52,7 @@ struct Coefficients
 
   double tol_x; // tolerance of the argument
 
-  double n; // number of interavals in the grid
+  unsigned int n; // number of interavals in the grid
 };
 
 class Parameters
@@ -72,14 +68,14 @@ public:
     coefficients.max_it = datafile((section + "max_it").data(), 500);
     coefficients.tol_res = datafile((section + "tol_res").data(), 1.0e-5);
     coefficients.tol_x = datafile((section + "tol_x").data(), 1.0e-5);
-    coefficients.h = datafile((section + "h").data(), 0.001);
+    coefficients.h = datafile((section + "n").data(), 10);
 
     section = "Functions/";
-    functions.funString = datafile((section + "fun").data(), "0.0 * x_1 * x_2");
-    functions.funBC_1String = datafile((section + "funBC_1").data(), "0.0 * x_1 * x_2");
-    functions.funBC_2String = datafile((section + "funBC_2").data(), "0.0 * x_1 * x_2");
-    functions.funBC_3String = datafile((section + "funBC_3").data(), "0.0 * x_1 * x_2");
-    functions.funBC_4String = datafile((section + "funBC_4").data(), "0.0 * x_1 * x_2");
+    functions.funString = datafile((section + "fun").data(), "0.0 * x[1] * x[2]");
+    functions.funBC_1String = datafile((section + "funBC_1").data(), "0.0 * x[1] * x[2]");
+    functions.funBC_2String = datafile((section + "funBC_2").data(), "0.0 * x[1] * x[2]");
+    functions.funBC_3String = datafile((section + "funBC_3").data(), "0.0 * x[1] * x[2]");
+    functions.funBC_4String = datafile((section + "funBC_4").data(), "0.0 * x[1] * x[2]");
   }
 
   Functions functions;

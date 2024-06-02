@@ -1,0 +1,39 @@
+#-------------------------------------------------
+# -----------------Solver Options-----------------
+#-------------------------------------------------
+
+[Parameters]
+
+    ### Maximum number of iterations
+    max_it = 10000
+
+    ### Tolerance for the residual
+    tol_res = 1e-6
+
+    ### Tolerance for the argument (evaluated in L2 norm) 
+    tol_x = 1e-6
+
+    ### Number of interval to subdivide the grid
+    n = 10
+
+[../]
+
+[Functions]
+
+    ### Function (indicate variables as x[*] where * goes from 0 to DIM - 1)
+    fun = 'x[0] * x[1] + 4 * x[0] * x[0] * x[0] * x[0] + x[1] * x[1] + 3 * x[0]'
+
+####    Domain enumeration
+####        ----3----
+####        |       |
+####        4       2
+####        |       |
+####        ----1----
+
+    ### Boundary conditions functions
+    funBC_1 = '0.0 * x[0] * x[1]'
+    funBC_2 = '0.0 * x[0] * x[1]'
+    funBC_3 = '0.0 * x[0] * x[1]'
+    funBC_4 = '0.0 * x[0] * x[1]'
+
+[../]
