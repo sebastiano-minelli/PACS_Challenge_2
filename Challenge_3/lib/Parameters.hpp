@@ -23,7 +23,7 @@ BCs enumeration:
 
 */
 
-struct Function
+struct Functions
 {
     std::string funString; // force function string
 
@@ -77,34 +77,15 @@ public:
     coefficients.h = datafile((section + "h").data(), 0.001);
 
     section = "Functions/";
-    fun.funString = datafile((section + "fun").data(), " ");
-    funBC_1.funString = datafile((section + "funBC_1").data(), " ");
-    funBC_2.funString = datafile((section + "funBC_2").data(), " ");
-    funBC_3.funString = datafile((section + "funBC_3").data(), " ");
-    funBC_4.funString = datafile((section + "funBC_4").data(), " ");
-    
-    for(size_t i = 0; i < DIM; ++i)
-    {
-        std::string scalar_place = std::to_string(i + 1);
-        function_param.x[i] = datafile((section + "x_" + scalar_place).data(), 0.0);
-    }
-
-
-
-    // Creating muParserX function and respective gradient
-    MuParserInterface::muParserXInterface<DIM> dummy_fun(function_param.funString);
-    function_param.fun = dummy_fun;
-    
-    if(!coefficients.compute_num_grad)
-      for(size_t i = 0; i < DIM; ++i)
-        function_param.dfun.emplace_back(function_param.dfunString[i]);
+    functions.funString = datafile((section + "fun").data(), "0.0 * x_1 * x_2");
+    functions.funBC_1String = datafile((section + "funBC_1").data(), "0.0 * x_1 * x_2");
+    functions.funBC_2String = datafile((section + "funBC_2").data(), "0.0 * x_1 * x_2");
+    functions.funBC_3String = datafile((section + "funBC_3").data(), "0.0 * x_1 * x_2");
+    functions.funBC_4String = datafile((section + "funBC_4").data(), "0.0 * x_1 * x_2");
   }
 
-  Function<DIM> fun;
-  Function<DIM> funBC_1;
-  Function<DIM> funBC_2;
-  Function<DIM> funBC_3;
-  Function<DIM> funBC_4;
+  Functions functions;
   Coefficients coefficients;
+};
 
 #endif /* HH_PARAMETERS_HH */
