@@ -6,10 +6,9 @@
 #include <vector>
 #include "GetPot"
 #include "muParserXInterface.hpp"
+#include "Utilities.hpp"
 
 using namespace MuParserInterface;
-
-template<unsigned int DIM>
 
 /*
 BCs enumeration: 
@@ -28,13 +27,13 @@ struct Function
 {
     std::string funString; // force function string
 
-    std::vector<std::string> funBC_1String; // BC of the bottom boundary string
+    std::string funBC_1String; // BC of the bottom boundary string
 
-    std::vector<std::string> funBC_2String; // BC of the right boundary string
+    std::string funBC_2String; // BC of the right boundary string
 
-    std::vector<std::string> funBC_3String; // BC of the up boundary string
+    std::string funBC_3String; // BC of the up boundary string
 
-    std::vector<std::string> funBC_4String; // BC of the left boundary string
+    std::string funBC_4String; // BC of the left boundary string
 
     muParserXInterface<DIM> fun; // function
 
@@ -57,23 +56,9 @@ struct Coefficients
 
   double tol_x; // tolerance of the argument
 
-  bool compute_num_grad; // true to compute a numerical gradient, false otherwise
-
-  double h; // spacing for central difference scheme
+  double n; // number of interavals in the grid
 };
 
-struct StepCoeffMethod
-{ // method to use to solve the step coefficient parameter
-  std::string coeff_solver; // 'Exponential', 'InverseDecay', 'Armijo' 
-  double alpha_zero;
-  double mu;
-  double sigma;
-};
-
-struct MinMethod
-{ // method to use to solve the minimization problem
-  std::string solver_type; // 'Gradient' 
-};
 
 template<unsigned int DIM>
 class Parameters
@@ -89,38 +74,20 @@ public:
     coefficients.max_it = datafile((section + "max_it").data(), 500);
     coefficients.tol_res = datafile((section + "tol_res").data(), 1.0e-5);
     coefficients.tol_x = datafile((section + "tol_x").data(), 1.0e-5);
-    coefficients.compute_num_grad = datafile((section + "compute_num_grad").data(), true);
     coefficients.h = datafile((section + "h").data(), 0.001);
 
     section = "Functions/";
-    function_param.funString = datafile((section + "fun").data(), " ");
-    
-    if(!coefficients.compute_num_grad)
-    {  
-      function_param.dfunString.resize(DIM);
-      for(size_t i = 0; i < DIM; ++i)
-      {
-          // evaluate the right term of the gradient vector
-          std::string scalar_place = std::to_string(i + 1);
-          function_param.dfunString[i] = datafile((section + "grad_fun_" + scalar_place).data(), " ");
-      }
-    }
+    fun.funString = datafile((section + "fun").data(), " ");
+    funBC_1.funString = datafile((section + "funBC_1").data(), " ");
+    funBC_2.funString = datafile((section + "funBC_2").data(), " ");
+    funBC_3.funString = datafile((section + "funBC_3").data(), " ");
+    funBC_4.funString = datafile((section + "funBC_4").data(), " ");
     
     for(size_t i = 0; i < DIM; ++i)
     {
         std::string scalar_place = std::to_string(i + 1);
         function_param.x[i] = datafile((section + "x_" + scalar_place).data(), 0.0);
     }
-    
-
-    section = "Solver_Type/";
-    min_method.solver_type = datafile((section + "solver_type").data(), "Gradient"); // Solver choice
- 
-    section = "Compute_Coefficient_Method/";
-    step_coeff_method.coeff_solver = datafile((section + "coeff_solver").data(), "Exponential"); // Step coefficient choice
-    step_coeff_method.alpha_zero = datafile((section + "Method_Options/" + "alpha_zero").data(), 0.5); //alpha zero
-    step_coeff_method.mu = datafile((section + "Method_Options/" + "mu").data(), 0.2); //mu
-    step_coeff_method.sigma = datafile((section + "Method_Options/" + "sigma").data(), 0.3); //sigma
 
 
 
@@ -133,10 +100,11 @@ public:
         function_param.dfun.emplace_back(function_param.dfunString[i]);
   }
 
-  Function<DIM> function_param;
+  Function<DIM> fun;
+  Function<DIM> funBC_1;
+  Function<DIM> funBC_2;
+  Function<DIM> funBC_3;
+  Function<DIM> funBC_4;
   Coefficients coefficients;
-  StepCoeffMethod step_coeff_method;
-  MinMethod min_method;
-};
 
 #endif /* HH_PARAMETERS_HH */
