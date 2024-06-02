@@ -76,6 +76,22 @@ public:
     functions.funBC_2String = datafile((section + "funBC_2").data(), "0.0 * x[1] * x[2]");
     functions.funBC_3String = datafile((section + "funBC_3").data(), "0.0 * x[1] * x[2]");
     functions.funBC_4String = datafile((section + "funBC_4").data(), "0.0 * x[1] * x[2]");
+
+    // Creating muParserX function and respective gradient
+    MuParserInterface::muParserXInterface<DIM> dummy_fun(functions.funString);
+    functions.fun = dummy_fun;
+
+    MuParserInterface::muParserXInterface<DIM> dummy_fun_BC1(functions.funBC_1String);
+    functions.funBC_1 = dummy_fun_BC1;
+
+    MuParserInterface::muParserXInterface<DIM> dummy_fun_BC2(functions.funBC_2String);
+    functions.funBC_2 = dummy_fun_BC2;
+
+    MuParserInterface::muParserXInterface<DIM> dummy_fun_BC3(functions.funBC_3String);
+    functions.funBC_3 = dummy_fun_BC3;
+
+    MuParserInterface::muParserXInterface<DIM> dummy_fun_BC4(functions.funBC_4String);
+    functions.funBC_4 = dummy_fun_BC4;
   }
 
   Functions functions;

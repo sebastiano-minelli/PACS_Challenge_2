@@ -10,6 +10,8 @@ void generateVTKFile(const std::string & filename,
                      const std::vector<std::vector<double>> & scalarField, 
                      int nx, int ny, double hx, double hy) {
 
+    std::cout << "Generating VTK file " << filename << " ..." << std::endl;
+
     // opens the file
     std::ofstream vtkFile(filename);
 
@@ -43,6 +45,8 @@ void generateVTKFile(const std::string & filename,
             vtkFile <<  scalarField[i][j] << "\n";
         }
     }
+
+    std::cout << "VTK file " << filename << " generated successfully" << std::endl;
 
 }
 
