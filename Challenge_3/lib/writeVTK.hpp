@@ -41,8 +41,8 @@ void generateVTKFile(const std::string & filename,
     vtkFile << "LOOKUP_TABLE default\n";                 // color table
 
     // Write vector field data
-    for (int j = 0; j < ny; j++) {
-        for (int i = 0; i < nx; i++) {
+    for (int i = 0; i < nx; i++) {
+        for (int j = 0; j < ny; j++) {
             vtkFile <<  scalarField(i, j) << "\n";
         }
     }
