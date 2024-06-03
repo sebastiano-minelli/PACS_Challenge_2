@@ -2,6 +2,9 @@
 #include "writeVTK.hpp"
 #include "Eigen/Dense"
 #include <iostream>
+#include "mpi_utils.hpp"
+#include "partitioner.hpp"
+#include "SafeMPI.hpp"
 
 int main()
 {
@@ -35,7 +38,10 @@ int main()
 
     generateVTKFile("../files/output.vtk", exacSol, N, N, h, h);
 
-    Eigen::Matrix<double, N, N> L;
+    Eigen::MatrixXd L(N, N);
+
+    apsc::MatrixPartitioner mpartitioner(3, 3, 2);
+    std::cout << "First row: " << mpartitioner.first_row(5) << std::endl;
 
 
     return 0;
