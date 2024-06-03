@@ -32,7 +32,6 @@ public:
         std::cout << "\n" << std::endl;
         std::cout << "- Maximum n. of iterations:     " << this->coefficients.max_it << "\n" << std::endl;
         std::cout << "- Residue tolerance:            " << this->coefficients.tol_res << "\n" << std::endl;
-        std::cout << "- Argument tolerance (L2 norm): " << this->coefficients.tol_x << "\n" << std::endl;
         std::cout << "- Number of grid intervals:     " << this->coefficients.n << "\n" << std::endl;
         std::cout << "---------------------------------------------- \n" << std::endl;
     };

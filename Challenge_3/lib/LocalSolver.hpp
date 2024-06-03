@@ -14,31 +14,36 @@ class LocalSolver
         const std::size_t n_rows; // number of rows
         const std::size_t n_cols; // number of columns
         const param::ParameterHandler params; // parameters
-        const Eigen::MatrixXd L_loc; // local matrix
+        const Eigen::MatrixXd L; // matrix
         double norm_loc = std::numeric_limits<double>::infinity(); // local norm
 
     public:
 
-        LocalSolver(const Eigen::MatrixXd &L_loc_, const param::ParameterHandler &params_)
+        LocalSolver(const Eigen::MatrixXd &L_, const param::ParameterHandler &params_)
         : 
-        n_rows(L_loc_.rows()), 
-        n_cols(L_loc_.cols()), 
+        n_rows(L_.rows()), 
+        n_cols(L_.cols()), 
         params(params_), 
-        L_loc(L_loc_) 
+        L(L_) 
+
         {
             norm_loc = std::numeric_limits<double>::infinity();
         };
         
         // solves the laplace problem with Jacobi iteration locally 
-        std::pair<Eigen::MatrixXd, double> 
+        std::tuple<Eigen::MatrixXd, double, unsigned int> 
         solve()
         {
             const double h = 1.0 / params.coefficients.n; // step size
 
-            Eigen::MatrixXd L_loc_new(n_rows, n_cols); // new local matrix
+            unsigned int n_it = 0; // number of iterations
 
-            for(std::size_t k = 0; k < params.coefficients.max_it; ++k) // if we haven't reached the max iterations
+            Eigen::MatrixXd L_loc = L; // local matrix
+            Eigen::MatrixXd L_loc_new = L; // new local matrices
+
+            for(std::size_t k = 0; k < params.coefficients.max_it && norm_loc > params.coefficients.tol_res; ++k) // if we haven't reached the max iterations
             {
+                norm_loc = 0.0; // reset the norm
                 // compute Jacobi iteration
                 for(std::size_t i = 1; i < n_rows - 1; ++i)
                 {
@@ -48,19 +53,20 @@ class LocalSolver
                                         L_loc(i - 1, j) + 
                                         L_loc(i + 1, j) + 
                                         L_loc(i, j - 1) + 
-                                        L_loc(i, j + 1) +
-                                        h * h * params.functions.fun({i, j})
+                                        L_loc(i, j + 1) -
+                                        h * h * params.functions.fun({i * h, j * h})
                                         );
                         norm_loc += (L_loc_new(i, j) - L_loc(i, j)) * (L_loc_new(i, j) - L_loc(i, j));  
                         // notice that since we aren't changing the boundary its contribution to norm_loc is zero                  
                     }
                 }
                 norm_loc = std::sqrt(h * norm_loc);
-                if(norm_loc < params.coefficients.tol_res)
-                    break;
+                ++n_it;
+                // update
+                L_loc = L_loc_new;
             }
 
-            return std::pair<Eigen::MatrixXd, double>(L_loc_new, norm_loc);
+            return std::make_tuple(L_loc_new, norm_loc, n_it);
         }
 };
 

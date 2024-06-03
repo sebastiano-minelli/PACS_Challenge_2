@@ -4,10 +4,11 @@
 #include <vector>
 #include <string>
 #include <fstream>
+#include <Eigen/Dense>
 
 // generates a STRUCTURES VTK file with a scalar field
 void generateVTKFile(const std::string & filename, 
-                     const std::vector<std::vector<double>> & scalarField, 
+                     const Eigen::MatrixXd & scalarField, 
                      int nx, int ny, double hx, double hy) {
 
     std::cout << "Generating VTK file " << filename << " ..." << std::endl;
@@ -29,10 +30,10 @@ void generateVTKFile(const std::string & filename,
 
     // Write grid data
     vtkFile << "DATASET STRUCTURED_POINTS\n";                             // format of the dataset
-    vtkFile << "DIMENSIONS " << nx+1 << " " << ny+1 << " " << 1 << "\n";  // number of points in each direction
+    vtkFile << "DIMENSIONS " << nx << " " << ny << " " << 1 << "\n";  // number of points in each direction
     vtkFile << "ORIGIN 0 0 0\n";                                          // lower-left corner of the structured grid
     vtkFile << "SPACING" << " " << hx << " " << hy << " " << 1 << "\n";   // spacing between points in each direction
-    vtkFile << "POINT_DATA " << (nx+1) * (ny+1) << "\n";                  // number of points
+    vtkFile << "POINT_DATA " << nx * ny << "\n";                  // number of points
                                                                 
     
     // Write scalar field data
@@ -40,9 +41,9 @@ void generateVTKFile(const std::string & filename,
     vtkFile << "LOOKUP_TABLE default\n";                 // color table
 
     // Write vector field data
-    for (int j = 0; j < ny+1; j++) {
-        for (int i = 0; i < nx+1; i++) {
-            vtkFile <<  scalarField[i][j] << "\n";
+    for (int j = 0; j < ny; j++) {
+        for (int i = 0; i < nx; i++) {
+            vtkFile <<  scalarField(i, j) << "\n";
         }
     }
 

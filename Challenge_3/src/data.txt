@@ -5,13 +5,10 @@
 [Parameters]
 
     ### Maximum number of iterations
-    max_it = 10000
+    max_it = 5000
 
     ### Tolerance for the residual
     tol_res = 1e-6
-
-    ### Tolerance for the argument (evaluated in L2 norm) 
-    tol_x = 1e-6
 
     ### Number of interval to subdivide the grid
     n = 100
@@ -21,7 +18,7 @@
 [Functions]
 
     ### Function (indicate variables as x[*] where * goes from 0 to DIM - 1)
-    fun = '8 * 3.1415926535 * 3.1415926535 * sin(2 * 3.1415926535 * x[0]) * sin(2 * 3.1415926535 * x[1])'
+    fun = '8.0 * 3.1415926535 * 3.1415926535 * sin(2.0 * 3.1415926535 * x[0]) * sin(2.0 * 3.1415926535 * x[1])'
 
 ####    Domain enumeration
 ####        ----3----
