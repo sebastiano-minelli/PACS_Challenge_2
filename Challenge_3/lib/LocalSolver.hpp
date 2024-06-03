@@ -1,5 +1,5 @@
-#ifndef HH_SOLVE_LOCAL_HH
-#define HH_SOLVE_LOCAL_HH
+#ifndef HH_LOCAL_SOLVER_HH
+#define HH_LOCAL_SOLVER_HH
 
 #include <iostream>
 #include "ParameterHandler.hpp"
@@ -7,7 +7,7 @@
 
 // here we want to solve locally a subdomain of the problem
 
-class Solve_local
+class LocalSolver
 {
     private:
 
@@ -19,7 +19,7 @@ class Solve_local
 
     public:
 
-        Solve_local(const Eigen::MatrixXd &L_loc_, const param::ParameterHandler &params_)
+        LocalSolver(const Eigen::MatrixXd &L_loc_, const param::ParameterHandler &params_)
         : 
         n_rows(L_loc_.rows()), 
         n_cols(L_loc_.cols()), 
@@ -64,4 +64,4 @@ class Solve_local
         }
 };
 
-#endif // HH_SOLVE_LOCAL_HH
+#endif // HH_LOCAL_SOLVER_HH
