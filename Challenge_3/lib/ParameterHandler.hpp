@@ -5,6 +5,8 @@
 #include<vector>
 #include<array>
 
+namespace param
+{
 class ParameterHandler : public Parameters
 {
 public:
@@ -35,6 +37,8 @@ public:
         std::cout << "---------------------------------------------- \n" << std::endl;
     };
 };
+
+} // end namespace param
 
 
 

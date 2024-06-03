@@ -52,7 +52,7 @@ struct Coefficients
 
   double tol_x; // tolerance of the argument
 
-  unsigned int n; // number of interavals in the grid
+  unsigned int n; // number of intervals in the grid
 };
 
 class Parameters
