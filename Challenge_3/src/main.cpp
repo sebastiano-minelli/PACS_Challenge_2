@@ -5,43 +5,28 @@
 #include "mpi_utils.hpp"
 #include "partitioner.hpp"
 #include "SafeMPI.hpp"
+#include "InitializeProblem.hpp"
+#include "LocalSolver.hpp"
 
 int main()
 {
-    ParameterHandler param("data.txt");
-    param.show_data();
+    param::ParameterHandler params("data.txt");
+    params.show_data();
 
-    const int N = param.coefficients.n;
+    const int N = params.coefficients.n;
 
-    const double h = 1.0/ (N + 1);
+    const double h = 1.0/ N;
 
-    std::vector<std::vector<double>> exacSol;
+    Eigen::MatrixXd exacSol(N, N);
+    initialize_problem(params, exacSol); // exacSol is passed by reference
+    // std::cout << "Exact solution generated" << "\n" << exacSol << std::endl;
+    LocalSolver loc_solver(exacSol, params);
+    auto [sol, norm, n_it] = loc_solver.solve();
+    std::cout << "Local norm: " << norm << std::endl;
+    std::cout << "Number of iterations: " << n_it << std::endl;
+    // std::cout << "Local solution: " << "\n" << sol << std::endl;
 
-    double x, y;
-    std::array<double, DIM> xvalue;
-    double funvalue;
-
-    for (int i = 0; i < N + 1; i++) 
-    {
-        std::vector<double> row;
-        x = i * h;
-        for (int j = 0; j < N + 1; j++) 
-        {
-            y = j * h;
-            xvalue[0] = x;
-            xvalue[1] = y;
-            funvalue = param.functions.fun(xvalue);
-            row.push_back(funvalue);
-        }
-        exacSol.push_back(row);
-    }
-
-    generateVTKFile("../files/output.vtk", exacSol, N, N, h, h);
-
-    Eigen::MatrixXd L(N, N);
-
-    apsc::MatrixPartitioner mpartitioner(3, 3, 2);
-    std::cout << "First row: " << mpartitioner.first_row(5) << std::endl;
+    generateVTKFile("../files/output.vtk", sol, N, N, h, h);
 
 
     return 0;
