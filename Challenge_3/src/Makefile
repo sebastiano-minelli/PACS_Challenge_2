@@ -2,7 +2,7 @@
 PACS_EXAMPLES_PATH=$(shell echo $$PACS_ROOT)
 EIGEN_INC = $(shell echo $$mkEigenInc)
 
-CXX      ?= g++
+CXX      ?= mpic++
 CXXFLAGS ?= -std=c++20 -fopenmp
 
 EXEC = main

@@ -7,7 +7,7 @@
 #include "ParameterHandler.hpp"
 
 void
-initialize_problem(const param::ParameterHandler &params, Eigen::MatrixXd &M)
+initialize_problem(const param::ParameterHandler &params, Eigen::MatrixXd &M, int row_start, int row_end, int col_start, int col_end)
 {
     const unsigned int n = params.coefficients.n; // number of intervals in the grid
     const double h = 1.0 / n; // step size
@@ -27,7 +27,7 @@ initialize_problem(const param::ParameterHandler &params, Eigen::MatrixXd &M)
     M.setZero(); 
     std::array<double, 2> point;
     #pragma omp parallel for shared(M)
-    for(unsigned int j = 0; j < n; ++j)
+    for(unsigned int j = col_start; j < col_end; ++j)
     {
         // notice that muParserXInterface isn't thread safe, we have to define a parser in every thread
         MuParserInterface::muParserXInterface<2> BC1(params.functions.funBC_1);
@@ -39,7 +39,7 @@ initialize_problem(const param::ParameterHandler &params, Eigen::MatrixXd &M)
         point = {j * h, 1.0};
         M(0, j) = BC3(point); // up boundary
     }
-    for(unsigned int i = 0; i < n; ++i)
+    for(unsigned int i = row_start; i < row_end; ++i)
     {   
         // notice that muParserXInterface isn't thread safe, we have to define a parser in every thread
         MuParserInterface::muParserXInterface<2> BC2(params.functions.funBC_2);
