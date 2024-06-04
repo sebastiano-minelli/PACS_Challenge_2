@@ -3,7 +3,7 @@ PACS_EXAMPLES_PATH=$(shell echo $$PACS_ROOT)
 EIGEN_INC = $(shell echo $$mkEigenInc)
 
 CXX      ?= g++
-CXXFLAGS ?= -std=c++20
+CXXFLAGS ?= -std=c++20 -fopenmp
 
 EXEC = main
 OBJECT = main.cpp
@@ -19,13 +19,13 @@ LDNAME = pacs
 .SECONDARY: $(EXEC) $(COMP)
 
 # set compilation mode
-debug: CPPFLAGS = -g -Wall -Wno-conversion-null -Wno-deprecated-declarations
+debug: CPPFLAGS = -g -Wall -fopenmp -Wno-conversion-null -Wno-deprecated-declarations
 debug: all
 
-standard: CPPFLAGS = -O0 -Wall -Wno-conversion-null -Wno-deprecated-declarations
+standard: CPPFLAGS = -O0 -Wall -fopenmp -Wno-conversion-null -Wno-deprecated-declarations
 standard: all
 
-optimized: CPPFLAGS = -O3 -Wall -Wno-conversion-null -Wno-deprecated-declarations
+optimized: CPPFLAGS = -O3 -Wall -fopenmp -Wno-conversion-null -Wno-deprecated-declarations
 optimized: all
 
 all: clean $(EXEC)
