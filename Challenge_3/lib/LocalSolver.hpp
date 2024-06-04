@@ -53,7 +53,7 @@ class LocalSolver
                                         L_loc(i - 1, j) + 
                                         L_loc(i + 1, j) + 
                                         L_loc(i, j - 1) + 
-                                        L_loc(i, j + 1) -
+                                        L_loc(i, j + 1) +
                                         h * h * params.functions.fun({j * h, i * h}) // notice that i and j are inverted
                                         );
                         norm_loc += (L_loc_new(i, j) - L_loc(i, j)) * (L_loc_new(i, j) - L_loc(i, j));  
