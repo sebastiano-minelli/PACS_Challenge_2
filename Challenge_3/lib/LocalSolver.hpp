@@ -21,20 +21,17 @@ class LocalSolver
 
         LocalSolver(const std::vector<double> &L_, const param::ParameterHandler &params_)
         : 
-        n(params_.coefficients.n) 
+        n(params_.coefficients.n), 
         params(params_), 
         L(L_),
         norm_loc(std::numeric_limits<double>::infinity())
         {};
         
         // solves the laplace problem with Jacobi iteration locally 
-        std::tuple<std::vector<double>, double, unsigned int> 
+        std::tuple<std::vector<double>, double> 
         solve()
         {
             const double h = 1.0 / params.coefficients.n; // step size
-
-            unsigned int n_it = 0; // number of iterations
-
             std::vector<double> L_loc = L; // local matrix
             std::vector<double> L_loc_new = L; // new local matrices
 
@@ -44,12 +41,12 @@ class LocalSolver
             // making the loop parallel
             #pragma omp parallel for shared(L_loc_new) shared(L_loc) reduction(+:norm_loc)
             // compute Jacobi iteration
-            for(std::size_t i = 1; i < n_rows - 1; ++i)
+            for(std::size_t i = 1; i < n - 1; ++i)
             {
                 // Notice that muParserXInterface isn't thread safe, we have to define a parser in every thread
                 MuParserInterface::muParserXInterface<2> parser(params.functions.fun);
                 
-                for(std::size_t j = 1; j < n_cols - 1; ++j)
+                for(std::size_t j = 1; j < n - 1; ++j)
                 {
                     
                     std::array<double, 2> vars = {j * h, i * h};
@@ -65,12 +62,11 @@ class LocalSolver
                 }
             }
             norm_loc = std::sqrt(h * norm_loc);
-            ++n_it;
             // update
             L_loc = L_loc_new;
             
 
-            return std::make_tuple(L_loc_new, norm_loc, n_it);
+            return std::make_tuple(L_loc_new, norm_loc);
         }
 };
 
