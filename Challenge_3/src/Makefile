@@ -2,13 +2,13 @@
 PACS_EXAMPLES_PATH=$(shell echo $$PACS_ROOT)
 
 CXX      ?= mpic++
-CXXFLAGS ?= -std=c++20 -fopenmp
+CXXFLAGS ?= -std=c++17 -fopenmp
 
 EXEC = main
 OBJECT = main.cpp
 COMP = main.o
 LDINC = -I$(PACS_EXAMPLES_PATH)/Examples/include/muparserx -I$(PACS_EXAMPLES_PATH)/Examples/src/Parallel/Utilities -I../lib -I.
-LDLIB = $(PACS_EXAMPLES_PATH)/Examples/lib/libmuparserx.a
+LDLIB = $(PACS_EXAMPLES_PATH)/Examples/lib/libmuparserx.a -lmpi
 LDNAME = pacs
 
 .PHONY = clean help debug standard optimized
