@@ -2,8 +2,8 @@
 #define HH_LOCAL_SOLVER_HH
 
 #include <iostream>
+#include <vector>
 #include "ParameterHandler.hpp"
-#include <Eigen/Dense>
 #include <omp.h>
 
 // here we want to solve locally a subdomain of the problem
@@ -12,35 +12,31 @@ class LocalSolver
 {
     private:
 
-        const std::size_t n_rows; // number of rows
-        const std::size_t n_cols; // number of columns
+        const std::size_t n; // number of rows and columns
         const param::ParameterHandler params; // parameters
-        const Eigen::MatrixXd L; // matrix
+        const std::vector<double> L; // matrix
         double norm_loc = std::numeric_limits<double>::infinity(); // local norm
 
     public:
 
-        LocalSolver(const Eigen::MatrixXd &L_, const param::ParameterHandler &params_)
+        LocalSolver(const std::vector<double> &L_, const param::ParameterHandler &params_)
         : 
-        n_rows(L_.rows()), 
-        n_cols(L_.cols()), 
+        n(params_.coefficients.n) 
         params(params_), 
-        L(L_) 
-
-        {
-            norm_loc = std::numeric_limits<double>::infinity();
-        };
+        L(L_),
+        norm_loc(std::numeric_limits<double>::infinity())
+        {};
         
         // solves the laplace problem with Jacobi iteration locally 
-        std::tuple<Eigen::MatrixXd, double, unsigned int> 
+        std::tuple<std::vector<double>, double, unsigned int> 
         solve()
         {
             const double h = 1.0 / params.coefficients.n; // step size
 
             unsigned int n_it = 0; // number of iterations
 
-            Eigen::MatrixXd L_loc = L; // local matrix
-            Eigen::MatrixXd L_loc_new = L; // new local matrices
+            std::vector<double> L_loc = L; // local matrix
+            std::vector<double> L_loc_new = L; // new local matrices
 
             
             norm_loc = 0.0; // reset the norm
@@ -57,14 +53,14 @@ class LocalSolver
                 {
                     
                     std::array<double, 2> vars = {j * h, i * h};
-                    L_loc_new(i, j) = 0.25 * (
-                                    L_loc(i - 1, j) + 
-                                    L_loc(i + 1, j) + 
-                                    L_loc(i, j - 1) + 
-                                    L_loc(i, j + 1) +
+                    L_loc_new[i * n + j] = 0.25 * (
+                                    L_loc[(i - 1) * n + j] + 
+                                    L_loc[(i + 1) * n + j] + 
+                                    L_loc[i * n + j - 1] + 
+                                    L_loc[i * n + j + 1] +
                                     h * h * parser(vars) // notice that i and j are inverted
                                     );
-                    norm_loc += (L_loc_new(i, j) - L_loc(i, j)) * (L_loc_new(i, j) - L_loc(i, j));  
+                    norm_loc += (L_loc_new[i * n + j] - L_loc[i * n + j]) * (L_loc_new[i * n + j] - L_loc[i * n + j]);  
                     // notice that since we aren't changing the boundary its contribution to norm_loc is zero                  
                 }
             }

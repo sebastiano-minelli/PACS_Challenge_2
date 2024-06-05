@@ -4,11 +4,10 @@
 #include <vector>
 #include <string>
 #include <fstream>
-#include <Eigen/Dense>
 
 // generates a STRUCTURES VTK file with a scalar field
 void generateVTKFile(const std::string & filename, 
-                     const Eigen::MatrixXd & scalarField, 
+                     const std::vector<double> & scalarField, 
                      int nx, int ny, double hx, double hy) {
 
     std::cout << "Generating VTK file " << filename << " ..." << std::endl;
@@ -41,11 +40,8 @@ void generateVTKFile(const std::string & filename,
     vtkFile << "LOOKUP_TABLE default\n";                 // color table
 
     // Write vector field data
-    for (int i = 0; i < nx; i++) {
-        for (int j = 0; j < ny; j++) {
-            vtkFile <<  scalarField(i, j) << "\n";
-        }
-    }
+    for (const auto & scalar : scalarField)
+            vtkFile <<  scalar << "\n";
 
     std::cout << "VTK file " << filename << " generated successfully" << std::endl;
 
