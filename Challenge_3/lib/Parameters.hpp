@@ -41,7 +41,15 @@ struct Functions
 
     muParserXInterface<DIM> funBC_4; // function
 
-    std::array<double, DIM> x; // point of the domain
+    std::vector<double> funBC_1_values; // values of the BC1
+
+    std::vector<double> funBC_2_values; // values of the BC2
+
+    std::vector<double> funBC_3_values; // values of the BC3
+
+    std::vector<double> funBC_4_values; // values of the BC4
+
+    std::vector<double> fun_values; // values of the function
 };
 
 struct Coefficients
@@ -78,17 +86,63 @@ public:
     MuParserInterface::muParserXInterface<DIM> dummy_fun(functions.funString);
     functions.fun = dummy_fun;
 
+    // Evaluating the function
+    functions.fun_values.resize(coefficients.n * coefficients.n);
+    unsigned int n = coefficients.n;
+    double h = 1.0 / n;
+    std::array<double, 2> vars;
+    for (unsigned int i = 0; i < n; ++i)
+    {
+      for (unsigned int j = 0; j < n; ++j)
+      {
+        vars = {j * h, i * h};
+        functions.fun_values[i * n + j] = functions.fun(vars);
+      }
+    }
+
     MuParserInterface::muParserXInterface<DIM> dummy_fun_BC1(functions.funBC_1String);
     functions.funBC_1 = dummy_fun_BC1;
+
+    // Evaluating the BC1
+    functions.funBC_1_values.resize(coefficients.n);
+    for (unsigned int i = 0; i < n; ++i)
+    {
+      vars = {i * h, 0.0};
+      functions.funBC_1_values[i] = functions.funBC_1(vars);
+    }
 
     MuParserInterface::muParserXInterface<DIM> dummy_fun_BC2(functions.funBC_2String);
     functions.funBC_2 = dummy_fun_BC2;
 
+    // Evaluating the BC2
+    functions.funBC_2_values.resize(coefficients.n);
+    for (unsigned int i = 0; i < n; ++i)
+    {
+      vars = {1.0, i * h};
+      functions.funBC_2_values[i] = functions.funBC_2(vars);
+    }
+
     MuParserInterface::muParserXInterface<DIM> dummy_fun_BC3(functions.funBC_3String);
     functions.funBC_3 = dummy_fun_BC3;
 
+    // Evaluating the BC3
+    functions.funBC_3_values.resize(coefficients.n);
+    for (unsigned int i = 0; i < n; ++i)
+    {
+      vars = {i * h, 1.0};
+      functions.funBC_3_values[i] = functions.funBC_2(vars);
+    }
+
     MuParserInterface::muParserXInterface<DIM> dummy_fun_BC4(functions.funBC_4String);
     functions.funBC_4 = dummy_fun_BC4;
+
+    // Evaluating the BC4
+    functions.funBC_4_values.resize(coefficients.n);
+    for (unsigned int i = 0; i < n; ++i)
+    {
+      vars = {0.0, i * h};
+      functions.funBC_4_values[i] = functions.funBC_2(vars);
+    }
   }
 
   Functions functions;

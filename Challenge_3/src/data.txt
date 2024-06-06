@@ -5,10 +5,10 @@
 [Parameters]
 
     ### Maximum number of iterations
-    max_it = 5000
+    max_it = 3000
 
     ### Tolerance for the residual
-    tol_res = 1e-6
+    tol_res = 1e-3
 
     ### Number of interval to subdivide the grid
     n = 100
