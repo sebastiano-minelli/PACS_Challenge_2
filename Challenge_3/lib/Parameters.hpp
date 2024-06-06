@@ -95,7 +95,7 @@ public:
     {
       for (unsigned int j = 0; j < n; ++j)
       {
-        vars = {j * h, i * h};
+        vars = {j * h, 1.0 - i * h};
         functions.fun_values[i * n + j] = functions.fun(vars);
       }
     }

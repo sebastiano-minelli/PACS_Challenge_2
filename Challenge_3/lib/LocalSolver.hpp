@@ -49,7 +49,7 @@ class LocalSolver
                                     L_loc[(i + 1) * n_cols + j] + 
                                     L_loc[i * n_cols + j - 1] + 
                                     L_loc[i * n_cols + j + 1] +
-                                    h * h * params.functions.fun_values[i * n_cols + j + 1]
+                                    h * h * params.functions.fun_values[(global_row_index + i) * n_cols + j + 1]
                                     );
                     norm_loc += (L_loc_new[i * n_cols + j] - L_loc[i * n_cols + j]) * (L_loc_new[i * n_cols + j] - L_loc[i * n_cols + j]);  
                     // notice that since we aren't changing the boundary its contribution to norm_loc is zero                  

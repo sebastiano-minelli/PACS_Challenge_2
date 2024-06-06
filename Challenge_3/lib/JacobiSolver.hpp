@@ -35,14 +35,18 @@ class JacobiSolver
             int local_n_rows = (rank < N % size) ? N / size + 1 : N / size; // number of rows for each process
             std::vector<int> local_to_global(size, 0); // local to global index for the first row
 
+            // Calculate the number of rows for each process
+            int rows_per_process = N / size;
+            int remainder = N % size;
+
             for(int i = 0; i < size; ++i)
             {
-                local_to_global[i] = (i < N % size) ? i * (N / size + 1) : i * (N / size) + N % size;
+                local_to_global[i] = i * rows_per_process + std::min(i, remainder);
                 // account for the ghost rows
                 if(local_to_global[i] != 0)
                     local_to_global[i] -= 1;
             }
-
+            
             // add the ghost rows
             if (rank == 0 || rank == size - 1)
             {
@@ -76,6 +80,10 @@ class JacobiSolver
             {
             
                 local_norm = local_solver.solve(local_solution); // local solution is passed by reference and updated
+                MPI_Barrier(MPI_COMM_WORLD); // wait for all the processes to finish the computation
+
+                // obtain the norm
+                MPI_Allreduce(&local_norm, &norm, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 
                 // passing info to nearby processes
                 /*
@@ -89,44 +97,49 @@ class JacobiSolver
                 */
                 if(size > 1) // if size == 1 we have everything already
                 {
+                    std::vector<MPI_Request> requests(4*(size-1), MPI_REQUEST_NULL);
+                    std::vector<MPI_Status>  statuses(4*(size-1));
                     if(rank == 0)
                     {
                         // send the second last row to process 1 (the last one is the ghost one, process 1 has it already)
-                        MPI_Send(local_solution.data() + local_solution.size() - 2 * N, N, MPI_DOUBLE,
-                                1, (1100000 + 0 * 10 + 1), MPI_COMM_WORLD); 
+                        MPI_Isend(local_solution.data() + local_solution.size() - 2 * N, N, MPI_DOUBLE,
+                                1, (1100000 + 0 * 10 + 1), MPI_COMM_WORLD, &requests[0]); 
+
                         // receive the first row from process 1 (that will be placed in the last ghost row of process 0)
-                        MPI_Recv(local_solution.data() + local_solution.size() - N, N, MPI_DOUBLE,
-                                1, (1000000 + 1 * 10 + 0), MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                        MPI_Irecv(local_solution.data() + local_solution.size() - N, N, MPI_DOUBLE,
+                                1, (1000000 + 1 * 10 + 0), MPI_COMM_WORLD, &requests[1]);
                     }
                     if(rank == size - 1)
                     {
                         // send the second row to process size - 2 (the first one is the ghost one, process size - 2 has it already)
-                        MPI_Send(local_solution.data() + N, N, MPI_DOUBLE,
-                                size - 2, (1000000 + (size - 1) * 10 + size - 2), MPI_COMM_WORLD);
+                        MPI_Isend(local_solution.data() + N, N, MPI_DOUBLE,
+                                size - 2, (1000000 + (size - 1) * 10 + size - 2), MPI_COMM_WORLD, &requests[4*(size - 1) - 2]);
+
                         // receive the second last row from process size - 2 (that will be placed in the first ghost row of process size - 1)
-                        MPI_Recv(local_solution.data(), N, MPI_DOUBLE,
-                                size - 2, (1100000 + (size - 2) * 10 + size - 1), MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                        MPI_Irecv(local_solution.data(), N, MPI_DOUBLE,
+                                size - 2, (1100000 + (size - 2) * 10 + size - 1), MPI_COMM_WORLD, &requests[4*(size - 1) - 1]);
                     }
                     if(rank != 0 && rank != size - 1)
                     {
                         // send the second last row to process rank + 1 (the last one is the ghost one, process rank + 1 has it already)
-                        MPI_Send(local_solution.data() + local_solution.size() - 2 * N, N, MPI_DOUBLE,
-                                rank + 1, (1100000 + rank * 10 + rank + 1), MPI_COMM_WORLD);
+                        MPI_Isend(local_solution.data() + local_solution.size() - 2 * N, N, MPI_DOUBLE,
+                                rank + 1, (1100000 + rank * 10 + rank + 1), MPI_COMM_WORLD, &requests[4*rank - 2]);
                         // receive the first row from process rank + 1 (that will be placed in the last ghost row of process rank)
-                        MPI_Recv(local_solution.data() + local_solution.size() - N, N, MPI_DOUBLE,
-                                rank + 1, (1000000 + (rank + 1) * 10 + rank), MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                        MPI_Irecv(local_solution.data() + local_solution.size() - N, N, MPI_DOUBLE,
+                                rank + 1, (1000000 + (rank + 1) * 10 + rank), MPI_COMM_WORLD, &requests[4*rank -1]);
 
                         // send the second row to process rank - 1 (the first one is the ghost one, process rank - 1 has it already)
-                        MPI_Send(local_solution.data() + N, N, MPI_DOUBLE,
-                                rank - 1, (1000000 + rank * 10 + rank - 1), MPI_COMM_WORLD);
+                        MPI_Isend(local_solution.data() + N, N, MPI_DOUBLE,
+                                rank - 1, (1000000 + rank * 10 + rank - 1), MPI_COMM_WORLD, &requests[4*rank]);
                         // receive the second last row from process rank - 1 (that will be placed in the first ghost row of process rank)
-                        MPI_Recv(local_solution.data(), N, MPI_DOUBLE,
-                                rank - 1, (1100000 + (rank - 1) * 10 + rank), MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                        MPI_Irecv(local_solution.data(), N, MPI_DOUBLE,
+                                rank - 1, (1100000 + (rank - 1) * 10 + rank), MPI_COMM_WORLD, &requests[4*rank + 1]);
                     }
-                }
+                    
 
-                // obtain the norm
-                MPI_Allreduce(&local_norm, &norm, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+                    // Wait for all communications to finish.
+                    MPI_Waitall(4*(size -1), requests.data(), statuses.data());
+                }
 
                 ++n_iterations;
             }
@@ -144,7 +157,7 @@ class JacobiSolver
             {
                 local_solution.erase(local_solution.begin(), local_solution.begin() + local_n_cols);
                 local_solution.erase(local_solution.end() - local_n_cols, local_solution.end());
-            }  
+            }
 
             // send the number of elements to every process
             std::vector<int> recv_counts(size, 0);
@@ -160,7 +173,7 @@ class JacobiSolver
 
             MPI_Allgatherv(local_solution.data(), local_solution.size(), MPI_DOUBLE, 
                         result.data(),  recv_counts.data(), recv_start_idx.data(), MPI_DOUBLE, 
-                        MPI_COMM_WORLD);      
+                        MPI_COMM_WORLD);
 
             return std::make_tuple(result, norm, n_iterations);
         }
