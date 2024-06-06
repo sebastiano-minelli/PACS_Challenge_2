@@ -14,10 +14,8 @@ class JacobiSolver
         M(M_), params(params_), argc(argc_), argv(argv_)
         {};
 
-        std::tuple<std::vector<double>, double, unsigned int> solve()
+        std::tuple<std::vector<double>, double, unsigned int, int> solve()
         {
-            MPI_Init(&argc, &argv);
-
             int rank, size;
             MPI_Comm_rank(MPI_COMM_WORLD, &rank);
             MPI_Comm_size(MPI_COMM_WORLD, &size);
@@ -29,6 +27,9 @@ class JacobiSolver
             const unsigned int max_it = params.coefficients.max_it;
             const double tol = params.coefficients.tol_res;
             double norm = std::numeric_limits<double>::infinity();
+
+            std::vector<double> result(N * N, 0.0); // the final solution
+
             // initialize the matrix
             initialize_problem(params, M);
 
@@ -47,10 +48,7 @@ class JacobiSolver
                     if(local_to_global[i] != 0)
                         local_to_global[i] -= 1;
                 }
-                std::cout << "The local to global index for process " << rank << " is: " << local_to_global[rank] << std::endl;
 
-                std::cout << "Process " << rank << " has " << local_n_rows << " pre- rows" << std::endl;
-                std::cout << "size: " << size << std::endl;
                 // add the ghost rows
                 if (rank == 0 || rank == size - 1)
                 {
@@ -65,7 +63,6 @@ class JacobiSolver
                         local_n_rows += 1;
                 } //else do nothing
 
-                std::cout << "Process " << rank << " has " << local_n_rows << " rows" << std::endl;
                 
                 // define the local matrix
                 std::vector<double> M_local(local_n_rows * local_n_cols, 0.0);
@@ -78,29 +75,10 @@ class JacobiSolver
                         M_local[i * local_n_cols + j] = M[(local_to_global[rank] + i) * local_n_cols + j];
                     }
                 }
-                std::cout << "The local matrix of process " << rank << " is: " << std::endl;
-                for(int i = 0; i < local_n_rows; ++i)
-                {
-                    for(int j = 0; j < local_n_cols; ++j)
-                    {
-                        std::cout << M_local[i * local_n_cols + j] << " ";
-                    }
-                    std::cout << std::endl;
-                }
 
                 // define the local solution
                 LocalSolver local_solver(M_local, params, local_to_global[rank]);
                 auto [local_solution, local_norm] = local_solver.solve();
-                std::cout << "Hello from process " << rank << " I have the solution" << std::endl;
-                std::cout << "The solution is: " << std::endl;
-                for(int i = 0; i < local_n_rows; ++i)
-                {
-                    for(int j = 0; j < local_n_cols; ++j)
-                    {
-                        std::cout << local_solution[i * local_n_cols + j] << " ";
-                    }
-                    std::cout << std::endl;
-                }
 
                 // to send data remove the ghost rows   
                 if(rank == 0)
@@ -117,45 +95,36 @@ class JacobiSolver
                     local_solution.erase(local_solution.end() - local_n_cols, local_solution.end());
                 }
 
-                MPI_Barrier(MPI_COMM_WORLD);
+                //MPI_Barrier(MPI_COMM_WORLD);
 
-                std::vector<int> send_counts(size, 0);
-                std::vector<int> send_start_idx(size, 0);
+                // send the number of elements to every process
                 std::vector<int> recv_counts(size, 0);
-                std::vector<int> recv_start_idx(size, 0);
-                
-                int start_idx = 0;
-                for (int i = 0; i < size; ++i)
-                {
-                    recv_counts[i] = (N % size > i) ? N / size + 1 : N / size;
-                    send_counts[i] = recv_counts[i] * N;
+                int send_size = local_solution.size();
+                MPI_Allgather(&send_size, 1, MPI_INT, 
+                            recv_counts.data(), 1, MPI_INT, 
+                            MPI_COMM_WORLD);
 
-                    recv_start_idx[i] = start_idx;
-                    send_start_idx[i] = start_idx * N;
-
-                    start_idx += recv_counts[i];
-                }
-
-                std::vector<double> result(N * N, 0.0);
+                // compute the displacement
+                std::vector<int> recv_start_idx(size, 0); // recv_start_idx[0] = 0
+                for (int i = 1; i < size; ++i)
+                    recv_start_idx[i] = recv_start_idx[i - 1] + recv_counts[i - 1];
 
                 MPI_Allgatherv(local_solution.data(), local_solution.size(), MPI_DOUBLE, 
-                            result.data(),  recv_counts.data(), 
-                            recv_start_idx.data(), MPI_DOUBLE, MPI_COMM_WORLD);
+                            result.data(),  recv_counts.data(), recv_start_idx.data(), MPI_DOUBLE, 
+                            MPI_COMM_WORLD);
+
                 M = result;
 
                 // obtain the norm
                 MPI_Allreduce(&local_norm, &norm, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 
                 ++n_iterations;
-            }
+            }        
 
-
-            MPI_Finalize();
-
-            return std::make_tuple(M, norm, n_iterations);
+            return std::make_tuple(result, norm, n_iterations, rank);
         }
 
-    private:
+    protected:
         std::vector<double> M; // matrix to solve, notice that is just a copy
         param::ParameterHandler params; // parameters
         int argc; // parameter for MPI
