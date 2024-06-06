@@ -47,12 +47,25 @@ class JacobiSolver
                     if(local_to_global[i] != 0)
                         local_to_global[i] -= 1;
                 }
+                std::cout << "The local to global index for process " << rank << " is: " << local_to_global[rank] << std::endl;
 
+                std::cout << "Process " << rank << " has " << local_n_rows << " pre- rows" << std::endl;
+                std::cout << "size: " << size << std::endl;
                 // add the ghost rows
                 if (rank == 0 || rank == size - 1)
-                    local_n_rows += 1;
-                else
-                    local_n_rows += 2;
+                {
+                    if(local_n_rows < N)
+                        local_n_rows += 1;
+                }
+                else // if(rank != 0 && rank != size - 1)
+                {
+                    if(local_n_rows < N - 1 )
+                        local_n_rows += 2;
+                    else
+                        local_n_rows += 1;
+                } //else do nothing
+
+                std::cout << "Process " << rank << " has " << local_n_rows << " rows" << std::endl;
                 
                 // define the local matrix
                 std::vector<double> M_local(local_n_rows * local_n_cols, 0.0);
@@ -65,24 +78,43 @@ class JacobiSolver
                         M_local[i * local_n_cols + j] = M[(local_to_global[rank] + i) * local_n_cols + j];
                     }
                 }
+                std::cout << "The local matrix of process " << rank << " is: " << std::endl;
+                for(int i = 0; i < local_n_rows; ++i)
+                {
+                    for(int j = 0; j < local_n_cols; ++j)
+                    {
+                        std::cout << M_local[i * local_n_cols + j] << " ";
+                    }
+                    std::cout << std::endl;
+                }
 
                 // define the local solution
-                LocalSolver local_solver(M_local, params);
+                LocalSolver local_solver(M_local, params, local_to_global[rank]);
                 auto [local_solution, local_norm] = local_solver.solve();
+                std::cout << "Hello from process " << rank << " I have the solution" << std::endl;
+                std::cout << "The solution is: " << std::endl;
+                for(int i = 0; i < local_n_rows; ++i)
+                {
+                    for(int j = 0; j < local_n_cols; ++j)
+                    {
+                        std::cout << local_solution[i * local_n_cols + j] << " ";
+                    }
+                    std::cout << std::endl;
+                }
 
-                // to send data remove the ghost rows
+                // to send data remove the ghost rows   
                 if(rank == 0)
                 {
-                    local_solution.erase((local_solution.end() - 1) - local_n_cols, local_solution.end() - 1);
+                    local_solution.erase(local_solution.end() - local_n_cols, local_solution.end());
                 }
                 else if(rank == size - 1)
                 {
                     local_solution.erase(local_solution.begin(), local_solution.begin() + local_n_cols);
                 }
-                else
+                else // if(rank != 0 && rank != size - 1)
                 {
                     local_solution.erase(local_solution.begin(), local_solution.begin() + local_n_cols);
-                    local_solution.erase((local_solution.end() - 1) - local_n_cols, local_solution.end() - 1);
+                    local_solution.erase(local_solution.end() - local_n_cols, local_solution.end());
                 }
 
                 MPI_Barrier(MPI_COMM_WORLD);
@@ -106,9 +138,9 @@ class JacobiSolver
 
                 std::vector<double> result(N * N, 0.0);
 
-                MPI_Gatherv(local_solution.data(), local_solution.size(), MPI_DOUBLE, 
+                MPI_Allgatherv(local_solution.data(), local_solution.size(), MPI_DOUBLE, 
                             result.data(),  recv_counts.data(), 
-                            recv_start_idx.data(), MPI_DOUBLE, 0, MPI_COMM_WORLD);
+                            recv_start_idx.data(), MPI_DOUBLE, MPI_COMM_WORLD);
                 M = result;
 
                 // obtain the norm
