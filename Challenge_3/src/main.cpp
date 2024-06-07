@@ -28,14 +28,13 @@ int main(int argc, char **argv)
     
     if(rank == 0)
     {
-        std::cout << "Local norm: " << norm << std::endl;
+        std::cout << "Norm: " << norm << std::endl;
         std::cout << "Number of iterations: " << n_it << std::endl;
 
         generateVTKFile("../files/output.vtk", sol, N, N, h, h);
     }
+
     MPI_Finalize();
     
-
-
     return 0;
 }

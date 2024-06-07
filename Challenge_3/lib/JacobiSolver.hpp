@@ -94,67 +94,10 @@ class JacobiSolver
             LocalSolver local_solver(local_n_rows, local_n_cols, params, local_to_global[rank]);
 
             // start the iterations
-            for(std::size_t k = 0; k < max_it && local_norm > tol; ++k)
+            for(std::size_t k = 0; k < max_it && norm > tol; ++k)
             {
                 // update the local solution and get the norm            
                 std::tie(local_solution, local_norm) = local_solver.solve(local_solution);
-
-                /*
-                // passing info to nearby processes
-                enum class Tag : int
-                {
-                    TOP = 0,
-                    BOTTOM = 1
-                };
-                if(size > 1) // if size == 1 we have everything already
-                {
-                    std::vector<MPI_Request> requests;
-                    std::vector<MPI_Status> statuses(2);
-
-                    // initialize receive 
-                    if(rank != 0)
-                    {
-                        requests.emplace_back();
-                        // top receive
-                        MPI_Irecv(local_solution.data() + N, N, MPI_DOUBLE,
-                                rank - 1, static_cast<int>(Tag::BOTTOM), MPI_COMM_WORLD, &requests.back());
-                    }
-
-                    // initialize send
-                    if(rank != size - 1)
-                    {
-                        requests.emplace_back();
-                        // bottom send
-                        MPI_Isend(local_solution.data() + local_solution.size() - 2 * N, N, MPI_DOUBLE,
-                                rank + 1, static_cast<int>(Tag::BOTTOM), MPI_COMM_WORLD, &requests.back());
-                    }
-
-                    // initialize receive 
-                    if(rank != size - 1)
-                    {
-                        requests.emplace_back();
-                        // bottom receive
-                        MPI_Irecv(local_solution.data() + local_solution.size() - 2 * N, N, MPI_DOUBLE,
-                                rank + 1, static_cast<int>(Tag::BOTTOM), MPI_COMM_WORLD, &requests.back());
-                    }
-
-                    // initialize send
-                    if(rank != 0)
-                    {
-                        requests.emplace_back();
-                        // top send
-                        MPI_Isend(local_solution.data() + N, N, MPI_DOUBLE,
-                                rank - 1, static_cast<int>(Tag::BOTTOM), MPI_COMM_WORLD, &requests.back());
-                    }
-
-                    // Wait for all requests to complete
-                    MPI_Waitall(requests.size(), requests.data(), MPI_STATUSES_IGNORE);
-                    // Wait for all non-blocking operations to complete
-                    //MPI_Waitall(requests.size(), requests.data(), MPI_STATUSES_IGNORE);
-                    
-                }
-                */
-                //std::cout << "End of for loop " << k << " from process " << rank << std::endl;
 
                 if(size > 1)
                 {
@@ -213,21 +156,22 @@ class JacobiSolver
                     }
                 }
 
+                // compute the norm
+                // to compute the real norm we need first to recover the sum of the squares of the differences
+                local_norm = (local_norm * local_norm) / h;
+
+                // obtain the sum
+                MPI_Allreduce(&local_norm, &norm, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+
+                // compute the total norm
+                norm = std::sqrt(h * norm);
+
                 // update local iterations
                 ++local_n_iterations;
             }
 
 
             MPI_Barrier(MPI_COMM_WORLD); // wait for all the processes to finish the computation
-
-            // to compute the real norm we need first to recover the sum of the squares of the differences
-            local_norm = (local_norm * local_norm) / h;
-
-            // obtain the sum
-            MPI_Allreduce(&local_norm, &norm, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-
-            // compute the total norm
-            norm = std::sqrt(h * norm);
 
             // obtain the max number of iterations
             unsigned int n_iterations;

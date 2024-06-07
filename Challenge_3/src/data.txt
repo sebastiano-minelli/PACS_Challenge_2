@@ -5,10 +5,10 @@
 [Parameters]
 
     ### Maximum number of iterations
-    max_it = 5000
+    max_it = 20000
 
     ### Tolerance for the residual
-    tol_res = 1e-3
+    tol_res = 0.0001
 
     ### Number of interval to subdivide the grid
     n = 250
@@ -19,7 +19,6 @@
 
     ### Function (indicate variables as x[*] where * goes from 0 to DIM - 1)
     fun = '8.0 * 3.1415926535 * 3.1415926535 * sin(2.0 * 3.1415926535 * x[0]) * sin(2.0 * 3.1415926535 * x[1])'
-    ###fun = '0.0 * x[0] * x[1]'
 
 ####    Domain enumeration
 ####        ----3----
@@ -30,7 +29,7 @@
 
     ### Boundary conditions functions
     funBC_1 = '0.0 * x[0] * x[1]'
-    funBC_2 = '0.0 * x[0] * x[1] + 500.0'
+    funBC_2 = '0.0 * x[0] * x[1]'
     funBC_3 = '0.0 * x[0] * x[1]'
     funBC_4 = '0.0 * x[0] * x[1]'
 
