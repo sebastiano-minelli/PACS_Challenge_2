@@ -18,13 +18,13 @@ class JacobiSolver
         {
             // define some parameters just for convenience
             const int N = params.coefficients.n;
-            // const double h = 1.0 / N;
-            unsigned int n_iterations = 0;
+            const double h = 1.0 / N;
+            unsigned int local_n_iterations = 0;
             const unsigned int max_it = params.coefficients.max_it;
             const double tol = params.coefficients.tol_res;
             double norm = std::numeric_limits<double>::infinity();
 
-            double local_norm = 0.0;
+            double local_norm = std::numeric_limits<double>::infinity();
             std::vector<double> result(N * N, 0.0); // the final solution
 
             // initialize the matrix
@@ -76,73 +76,84 @@ class JacobiSolver
             // define the local solution
             LocalSolver local_solver(local_n_rows, local_n_cols, params, local_to_global[rank]);
 
-            for(std::size_t k = 0; k < max_it && norm > tol; ++k)
+            for(std::size_t k = 0; k < max_it && local_norm > tol; ++k)
             {
             
-                local_norm = local_solver.solve(local_solution); // local solution is passed by reference and updated
-                MPI_Barrier(MPI_COMM_WORLD); // wait for all the processes to finish the computation
-
-                // obtain the norm
-                MPI_Allreduce(&local_norm, &norm, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+                std::tie(local_solution, local_norm) = local_solver.solve(local_solution); // local solution is passed by reference and updated
 
                 // passing info to nearby processes
-                /*
-                Note about Tags:
-                the tag is defined as 1p000ij where:
-                p = 1 if we send the last row
-                p = 0 if we send the first row
-                the receiver has p inverted (0 if the sender sends the last row, 1 if the sender sends the first row)
-                i = the process that sends the data
-                j = the process that receives the data
-                */
+                enum class Tag : int
+                {
+                    TOP = 0,
+                    BOTTOM = 1
+                };
                 if(size > 1) // if size == 1 we have everything already
                 {
-                    std::vector<MPI_Request> requests(4*(size-1), MPI_REQUEST_NULL);
-                    std::vector<MPI_Status>  statuses(4*(size-1));
-                    if(rank == 0)
+                    std::vector<MPI_Request> requests;
+                    std::vector<MPI_Status> statuses(2);
+
+                    // initialize receive 
+                    if(rank != 0)
                     {
-                        // send the second last row to process 1 (the last one is the ghost one, process 1 has it already)
+                        requests.emplace_back();
+                        // top receive
+                        MPI_Irecv(local_solution.data() + N, N, MPI_DOUBLE,
+                                rank - 1, static_cast<int>(Tag::BOTTOM), MPI_COMM_WORLD, &requests.back());
+                    }
+
+                    // initialize send
+                    if(rank != size - 1)
+                    {
+                        requests.emplace_back();
+                        // bottom send
                         MPI_Isend(local_solution.data() + local_solution.size() - 2 * N, N, MPI_DOUBLE,
-                                1, (1100000 + 0 * 10 + 1), MPI_COMM_WORLD, &requests[0]); 
-
-                        // receive the first row from process 1 (that will be placed in the last ghost row of process 0)
-                        MPI_Irecv(local_solution.data() + local_solution.size() - N, N, MPI_DOUBLE,
-                                1, (1000000 + 1 * 10 + 0), MPI_COMM_WORLD, &requests[1]);
+                                rank + 1, static_cast<int>(Tag::BOTTOM), MPI_COMM_WORLD, &requests.back());
                     }
-                    if(rank == size - 1)
+
+                    // initialize receive 
+                    if(rank != size - 1)
                     {
-                        // send the second row to process size - 2 (the first one is the ghost one, process size - 2 has it already)
-                        MPI_Isend(local_solution.data() + N, N, MPI_DOUBLE,
-                                size - 2, (1000000 + (size - 1) * 10 + size - 2), MPI_COMM_WORLD, &requests[4*(size - 1) - 2]);
-
-                        // receive the second last row from process size - 2 (that will be placed in the first ghost row of process size - 1)
-                        MPI_Irecv(local_solution.data(), N, MPI_DOUBLE,
-                                size - 2, (1100000 + (size - 2) * 10 + size - 1), MPI_COMM_WORLD, &requests[4*(size - 1) - 1]);
+                        requests.emplace_back();
+                        // bottom receive
+                        MPI_Irecv(local_solution.data() + local_solution.size() - 2 * N, N, MPI_DOUBLE,
+                                rank + 1, static_cast<int>(Tag::BOTTOM), MPI_COMM_WORLD, &requests.back());
                     }
-                    if(rank != 0 && rank != size - 1)
+
+                    // initialize send
+                    if(rank != 0)
                     {
-                        // send the second last row to process rank + 1 (the last one is the ghost one, process rank + 1 has it already)
-                        MPI_Isend(local_solution.data() + local_solution.size() - 2 * N, N, MPI_DOUBLE,
-                                rank + 1, (1100000 + rank * 10 + rank + 1), MPI_COMM_WORLD, &requests[4*rank - 2]);
-                        // receive the first row from process rank + 1 (that will be placed in the last ghost row of process rank)
-                        MPI_Irecv(local_solution.data() + local_solution.size() - N, N, MPI_DOUBLE,
-                                rank + 1, (1000000 + (rank + 1) * 10 + rank), MPI_COMM_WORLD, &requests[4*rank -1]);
-
-                        // send the second row to process rank - 1 (the first one is the ghost one, process rank - 1 has it already)
+                        requests.emplace_back();
+                        // top send
                         MPI_Isend(local_solution.data() + N, N, MPI_DOUBLE,
-                                rank - 1, (1000000 + rank * 10 + rank - 1), MPI_COMM_WORLD, &requests[4*rank]);
-                        // receive the second last row from process rank - 1 (that will be placed in the first ghost row of process rank)
-                        MPI_Irecv(local_solution.data(), N, MPI_DOUBLE,
-                                rank - 1, (1100000 + (rank - 1) * 10 + rank), MPI_COMM_WORLD, &requests[4*rank + 1]);
+                                rank - 1, static_cast<int>(Tag::BOTTOM), MPI_COMM_WORLD, &requests.back());
                     }
+
+                    // Wait for all requests to complete
+                    MPI_Waitall(requests.size(), requests.data(), MPI_STATUSES_IGNORE);
+                    // Wait for all non-blocking operations to complete
+                    //MPI_Waitall(requests.size(), requests.data(), MPI_STATUSES_IGNORE);
                     
-
-                    // Wait for all communications to finish.
-                    MPI_Waitall(4*(size -1), requests.data(), statuses.data());
                 }
+                //std::cout << "End of for loop " << k << " from process " << rank << std::endl;
 
-                ++n_iterations;
+                ++local_n_iterations;
             }
+
+
+            MPI_Barrier(MPI_COMM_WORLD); // wait for all the processes to finish the computation
+
+            // to compute the real norm we need first to recover the sum of the squares of the differences
+            local_norm = (local_norm * local_norm) / h;
+
+            // obtain the sum
+            MPI_Allreduce(&local_norm, &norm, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+
+            // compute the total norm
+            norm = std::sqrt(h * norm);
+
+            // obtain the max number of iterations
+            unsigned int n_iterations;
+            MPI_Allreduce(&local_n_iterations, &n_iterations, 1, MPI_UNSIGNED, MPI_MAX, MPI_COMM_WORLD);
 
             // to gather data remove the ghost rows   
             if(rank == 0)
