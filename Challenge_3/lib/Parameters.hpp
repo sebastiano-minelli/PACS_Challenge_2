@@ -108,14 +108,11 @@ public:
     }
 
     // Creating muParserX function
-    MuParserInterface::muParserXInterface<DIM> dummy_fun(functions.fun_exactString);
-    functions.fun_exact = dummy_fun;
+    MuParserInterface::muParserXInterface<DIM> dummy_fun_exact(functions.fun_exactString);
+    functions.fun_exact = dummy_fun_exact;
 
     // Evaluating the function
-    unsigned int n = coefficients.n;
     functions.fun_exact_values.resize(n * n);
-    double h = 1.0 / n;
-    std::array<double, 2> vars;
     for (unsigned int i = 0; i < n; ++i)
     {
       for (unsigned int j = 0; j < n; ++j)

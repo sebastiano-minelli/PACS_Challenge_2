@@ -1,0 +1,39 @@
+#-------------------------------------------------
+# -----------------Solver Options-----------------
+#-------------------------------------------------
+
+[Parameters]
+
+    ### Maximum number of iterations
+    max_it = 20000
+
+    ### Tolerance for the residual
+    tol_res = 0.0001
+
+    ### Number of interval to subdivide the grid
+    n = 64
+
+[../]
+
+[Functions]
+
+    ### Function (indicate variables as x[*] where * goes from 0 to DIM - 1)
+    fun = '8.0 * 3.1415926535 * 3.1415926535 * sin(2.0 * 3.1415926535 * x[0]) * sin(2.0 * 3.1415926535 * x[1])'
+
+    ### Exact solution (indicate variables as x[*] where * goes from 0 to DIM - 1)
+    fun_exact = 'sin(2.0 * 3.1415926535 * x[0]) * sin(2.0 * 3.1415926535 * x[1])'
+
+####    Domain enumeration
+####        ----3----
+####        |       |
+####        4       2
+####        |       |
+####        ----1----
+
+    ### Boundary conditions functions
+    funBC_1 = '0.0 * x[0] * x[1]'
+    funBC_2 = '0.0 * x[0] * x[1]'
+    funBC_3 = '0.0 * x[0] * x[1]'
+    funBC_4 = '0.0 * x[0] * x[1]'
+
+[../]

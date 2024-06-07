@@ -2,6 +2,8 @@
 #include "writeVTK.hpp"
 #include <iostream>
 #include <vector>
+#include <string>
+#include <cmath>
 #include "mpi_utils.hpp"
 #include "SafeMPI.hpp"
 #include "JacobiSolver.hpp"
@@ -13,25 +15,54 @@ int main(int argc, char **argv)
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-    param::ParameterHandler params("data.txt");
-    if(rank == 0)
-        params.show_data();
+    std::vector<double> L2_norms(5, 0.0); // vector for the norms (compared with the exact solution)
+    std::vector<double> norms(5, 0.0); // vector for the norms
+    std::vector<unsigned int> n_iterations(5, 0); // vector for the number of iterations
+    std::vector<std::vector<double>> solutions; // vector for the matrices
+    solutions.resize(5);
 
-    const int N = params.coefficients.n;
+    for(int i = 1; i <= 5; i++) 
+    {
+        std::string filename = "data" + std::to_string(i) + ".txt";
 
-    const double h = 1.0/ N;
+        param::ParameterHandler params(filename);
+        /*
+        if(rank == 0)
+            params.show_data();
+        */
 
-    std::vector<double> exacSol(N * N, 0.0);
-    JacobiSolver jac_solver(exacSol, params, argc, argv, rank, size);
-    
-    auto [sol, norm, n_it] = jac_solver.solve();
-    
+        const int N = params.coefficients.n;
+
+        const double h = 1.0/ N;
+
+        std::vector<double> exact_solution = params.functions.fun_values; // exact solution
+        JacobiSolver jac_solver(exact_solution, params, argc, argv, rank, size);
+        
+        std::tie(solutions[i], norms[i], n_iterations[i]) = jac_solver.solve();
+
+        // calculate the L2 norm
+        for(int x = 0; x < N; ++x)
+        {
+            for(int y = 0; y < N; ++y)
+            {
+                L2_norms[i] += (solutions[i][x * N + y] - exact_solution[x * N + y]) * 
+                                (solutions[i][x * N + y] - exact_solution[x * N + y]);
+            }
+        }
+        L2_norms[i] = std::sqrt(h * L2_norms[i]);
+        
+        if(rank == 0)
+            generateVTKFile("../files/output" + std::to_string(i) + ".vtk", solutions[i], N, N, h, h);
+    }
+
     if(rank == 0)
     {
-        std::cout << "Norm: " << norm << std::endl;
-        std::cout << "Number of iterations: " << n_it << std::endl;
-
-        generateVTKFile("../files/output.vtk", sol, N, N, h, h);
+        std::cout << "Test finished successfully" << std::endl;
+        std::cout << "Matrix dimension ---- L2 norm" << std::endl;
+        for(int i = 1; i <= 5; i++)
+        {
+            std::cout << "        " << std::pow(2, i) << "          ||     " << L2_norms[i] << "     " << L2_norms[i] << std::endl;
+        }
     }
 
     MPI_Finalize();
