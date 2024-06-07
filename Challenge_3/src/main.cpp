@@ -8,6 +8,7 @@
 #include "mpi_utils.hpp"
 #include "SafeMPI.hpp"
 #include "JacobiSolver.hpp"
+#include "chrono.hpp"
 
 int main(int argc, char **argv)
 {
@@ -16,6 +17,9 @@ int main(int argc, char **argv)
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
+    Timings::Chrono clock; // setting clock
+
+    std::vector<double> time_solver(5, std::numeric_limits<double>::max());
     std::vector<double> L2_norms(5, 0.0); // vector for the norms (compared with the exact solution)
     std::vector<double> norms(5, 0.0); // vector for the norms
     std::vector<unsigned int> n_iterations(5, 0); // vector for the number of iterations
@@ -41,7 +45,13 @@ int main(int argc, char **argv)
         std::vector<double> exact_solution = params.functions.fun_values; // exact solution
         JacobiSolver jac_solver(exact_solution, params, argc, argv, rank, size);
         
+        clock.start();
+        
         std::tie(solutions[i], norms[i], n_iterations[i]) = jac_solver.solve();
+        clock.stop();
+        auto walltime = clock.wallTime();
+        time_solver[i] = std::min(walltime, time_solver[i]);
+        
 
         // calculate the L2 norm
         for(int x = 0; x < N; ++x)
@@ -61,11 +71,11 @@ int main(int argc, char **argv)
     if(rank == 0)
     {
         std::cout << "Test finished successfully\n" << std::endl;
-        std::cout << std::setw(10) << "Matrix dimension" << std::setw(10) << "L2 norm" << std::endl;
+        std::cout << std::setw(10) << "Matrix dimension" << std::setw(10) << "L2 norm" << std::setw(10) << "Time"<< std::endl;
         std::cout << std::endl;
         for(int i = 0; i < 5; i++)
         {
-            std::cout << std::setw(10) << std::pow(2, i + 1)  << std::setw(16) << L2_norms[i] << std::endl;
+            std::cout << std::setw(10) << std::pow(2, i + 1)  << std::setw(16) << L2_norms[i] << std::setw(16) << time_solver[i] << std::endl;
         }
     }
 

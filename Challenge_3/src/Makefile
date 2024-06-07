@@ -7,7 +7,7 @@ CXXFLAGS ?= -std=c++17 -fopenmp
 EXEC = main
 OBJECT = main.cpp
 COMP = main.o
-LDINC = -I$(PACS_EXAMPLES_PATH)/Examples/include/muparserx -I$(PACS_EXAMPLES_PATH)/Examples/src/Parallel/Utilities -I../lib -I.
+LDINC = -I$(PACS_EXAMPLES_PATH)/Examples/include/muparserx -I$(PACS_EXAMPLES_PATH)/Examples/include/ -I$(PACS_EXAMPLES_PATH)/Examples/include/lib -I$(PACS_EXAMPLES_PATH)/Examples/src/Parallel/Utilities -I../lib -I.
 LDLIB = $(PACS_EXAMPLES_PATH)/Examples/lib/libmuparserx.a -lmpi
 LDNAME = pacs
 
