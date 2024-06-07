@@ -20,6 +20,9 @@
     ### Function (indicate variables as x[*] where * goes from 0 to DIM - 1)
     fun = '8.0 * 3.1415926535 * 3.1415926535 * sin(2.0 * 3.1415926535 * x[0]) * sin(2.0 * 3.1415926535 * x[1])'
 
+    ### Exact solution (indicate variables as x[*] where * goes from 0 to DIM - 1)
+    fun_exact = 'sin(2.0 * 3.1415926535 * x[0]) * sin(2.0 * 3.1415926535 * x[1])'
+
 ####    Domain enumeration
 ####        ----3----
 ####        |       |
