@@ -23,6 +23,8 @@ struct Functions
 {
     std::string funString; // force function string
 
+    std::string fun_exactString; // exact solution string
+
     std::string funBC_1String; // BC of the bottom boundary string
 
     std::string funBC_2String; // BC of the right boundary string
@@ -33,6 +35,8 @@ struct Functions
 
     muParserXInterface<DIM> fun; // function
 
+    muParserXInterface<DIM> fun_exact; // function
+
     muParserXInterface<DIM> funBC_1; // function
 
     muParserXInterface<DIM> funBC_2; // function
@@ -41,6 +45,10 @@ struct Functions
 
     muParserXInterface<DIM> funBC_4; // function
 
+    std::vector<double> fun_values; // values of the function
+
+    std::vector<double> fun_exact_values; // values of the exact solution
+
     std::vector<double> funBC_1_values; // values of the BC1
 
     std::vector<double> funBC_2_values; // values of the BC2
@@ -48,8 +56,6 @@ struct Functions
     std::vector<double> funBC_3_values; // values of the BC3
 
     std::vector<double> funBC_4_values; // values of the BC4
-
-    std::vector<double> fun_values; // values of the function
 };
 
 struct Coefficients
@@ -77,12 +83,13 @@ public:
 
     section = "Functions/";
     functions.funString = datafile((section + "fun").data(), "0.0 * x[1] * x[2]");
+    functions.funString = datafile((section + "fun_exact").data(), "0.0 * x[1] * x[2]");
     functions.funBC_1String = datafile((section + "funBC_1").data(), "0.0 * x[1] * x[2]");
     functions.funBC_2String = datafile((section + "funBC_2").data(), "0.0 * x[1] * x[2]");
     functions.funBC_3String = datafile((section + "funBC_3").data(), "0.0 * x[1] * x[2]");
     functions.funBC_4String = datafile((section + "funBC_4").data(), "0.0 * x[1] * x[2]");
 
-    // Creating muParserX function and respective gradient
+    // Creating muParserX function
     MuParserInterface::muParserXInterface<DIM> dummy_fun(functions.funString);
     functions.fun = dummy_fun;
 
@@ -97,6 +104,24 @@ public:
       {
         vars = {j * h, 1.0 - i * h};
         functions.fun_values[i * n + j] = functions.fun(vars);
+      }
+    }
+
+    // Creating muParserX function
+    MuParserInterface::muParserXInterface<DIM> dummy_fun(functions.fun_exactString);
+    functions.fun_exact = dummy_fun;
+
+    // Evaluating the function
+    unsigned int n = coefficients.n;
+    functions.fun_exact_values.resize(n * n);
+    double h = 1.0 / n;
+    std::array<double, 2> vars;
+    for (unsigned int i = 0; i < n; ++i)
+    {
+      for (unsigned int j = 0; j < n; ++j)
+      {
+        vars = {j * h, 1.0 - i * h};
+        functions.fun_exact_values[i * n + j] = functions.fun_exact(vars);
       }
     }
 
