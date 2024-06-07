@@ -43,7 +43,7 @@ void generateVTKFile(const std::string & filename,
     for (const auto & scalar : scalarField)
             vtkFile <<  scalar << "\n";
 
-    std::cout << "VTK file " << filename << " generated successfully" << std::endl;
+    std::cout << "VTK file " << filename << " generated successfully\n" << std::endl;
 
 }
 

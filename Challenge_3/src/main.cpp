@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <cmath>
+#include <iomanip>
 #include "mpi_utils.hpp"
 #include "SafeMPI.hpp"
 #include "JacobiSolver.hpp"
@@ -21,9 +22,11 @@ int main(int argc, char **argv)
     std::vector<std::vector<double>> solutions; // vector for the matrices
     solutions.resize(5);
 
-    for(int i = 1; i <= 5; i++) 
+    for(int i = 0; i < 5; i++) 
     {
-        std::string filename = "data" + std::to_string(i) + ".txt";
+        std::string filename = "data" + std::to_string(i + 1) + ".txt";
+        if(rank == 0)
+            std::cout << "filename: "  << filename<< std::endl;
 
         param::ParameterHandler params(filename);
         /*
@@ -57,11 +60,12 @@ int main(int argc, char **argv)
 
     if(rank == 0)
     {
-        std::cout << "Test finished successfully" << std::endl;
-        std::cout << "Matrix dimension ---- L2 norm" << std::endl;
-        for(int i = 1; i <= 5; i++)
+        std::cout << "Test finished successfully\n" << std::endl;
+        std::cout << std::setw(10) << "Matrix dimension" << std::setw(10) << "L2 norm" << std::endl;
+        std::cout << std::endl;
+        for(int i = 0; i < 5; i++)
         {
-            std::cout << "        " << std::pow(2, i) << "          ||     " << L2_norms[i] << "     " << L2_norms[i] << std::endl;
+            std::cout << std::setw(10) << std::pow(2, i + 1)  << std::setw(16) << L2_norms[i] << std::endl;
         }
     }
 

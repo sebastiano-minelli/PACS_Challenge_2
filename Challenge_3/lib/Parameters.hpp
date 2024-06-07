@@ -82,12 +82,12 @@ public:
     coefficients.n = datafile((section + "n").data(), 10);
 
     section = "Functions/";
-    functions.funString = datafile((section + "fun").data(), "0.0 * x[1] * x[2]");
-    functions.funString = datafile((section + "fun_exact").data(), "0.0 * x[1] * x[2]");
-    functions.funBC_1String = datafile((section + "funBC_1").data(), "0.0 * x[1] * x[2]");
-    functions.funBC_2String = datafile((section + "funBC_2").data(), "0.0 * x[1] * x[2]");
-    functions.funBC_3String = datafile((section + "funBC_3").data(), "0.0 * x[1] * x[2]");
-    functions.funBC_4String = datafile((section + "funBC_4").data(), "0.0 * x[1] * x[2]");
+    functions.funString = datafile((section + "fun").data(), "0.0 * x[0] * x[1]");
+    functions.fun_exactString = datafile((section + "fun_exact").data(), "0.0 * x[0] * x[1]");
+    functions.funBC_1String = datafile((section + "funBC_1").data(), "0.0 * x[0] * x[1]");
+    functions.funBC_2String = datafile((section + "funBC_2").data(), "0.0 * x[0] * x[1]");
+    functions.funBC_3String = datafile((section + "funBC_3").data(), "0.0 * x[0] * x[1]");
+    functions.funBC_4String = datafile((section + "funBC_4").data(), "0.0 * x[0] * x[1]");
 
     // Creating muParserX function
     MuParserInterface::muParserXInterface<DIM> dummy_fun(functions.funString);
