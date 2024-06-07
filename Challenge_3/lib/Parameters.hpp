@@ -130,7 +130,7 @@ public:
     for (unsigned int i = 0; i < n; ++i)
     {
       vars = {i * h, 1.0};
-      functions.funBC_3_values[i] = functions.funBC_2(vars);
+      functions.funBC_3_values[i] = functions.funBC_3(vars);
     }
 
     MuParserInterface::muParserXInterface<DIM> dummy_fun_BC4(functions.funBC_4String);
@@ -141,7 +141,7 @@ public:
     for (unsigned int i = 0; i < n; ++i)
     {
       vars = {0.0, i * h};
-      functions.funBC_4_values[i] = functions.funBC_2(vars);
+      functions.funBC_4_values[i] = functions.funBC_4(vars);
     }
   }
 

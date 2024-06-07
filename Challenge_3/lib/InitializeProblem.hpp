@@ -22,7 +22,7 @@ initialize_problem(const param::ParameterHandler &params, std::vector<double> &M
 
         M[i * n + n - 1] = params.functions.funBC_4_values[i]; // left boundary
 
-        M[i * n] = params.functions.funBC_3_values[i]; // right boundary
+        M[i * n] = params.functions.funBC_2_values[i]; // right boundary
     }
 }
 
