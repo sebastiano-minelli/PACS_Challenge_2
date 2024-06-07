@@ -14,7 +14,7 @@ class LocalSolver
 
         const int n_rows; // number of rows
         const int n_cols; // number of columns
-        const int global_row_index; // idex of the first row of the global matrix owned by the process 
+        const int global_row_index; // index of the first row of the global matrix owned by the process 
         const param::ParameterHandler params; // parameters
         double norm_loc = std::numeric_limits<double>::infinity(); // local norm
 
@@ -30,7 +30,8 @@ class LocalSolver
         {};
         
         // solves the laplace problem with Jacobi iteration locally 
-        double solve(std::vector<double> &L_loc)
+        std::tuple<std::vector<double>, double> 
+        solve(std::vector<double> L_loc)
         {
             const double h = 1.0 / params.coefficients.n; // step size
             std::vector<double> L_loc_new = L_loc; // new local matrices
@@ -49,7 +50,7 @@ class LocalSolver
                                     L_loc[(i + 1) * n_cols + j] + 
                                     L_loc[i * n_cols + j - 1] + 
                                     L_loc[i * n_cols + j + 1] +
-                                    h * h * params.functions.fun_values[(global_row_index + i) * n_cols + j + 1]
+                                    h * h * params.functions.fun_values[(global_row_index + i) * n_cols + j]
                                     );
                     norm_loc += (L_loc_new[i * n_cols + j] - L_loc[i * n_cols + j]) * (L_loc_new[i * n_cols + j] - L_loc[i * n_cols + j]);  
                     // notice that since we aren't changing the boundary its contribution to norm_loc is zero                  
@@ -60,7 +61,7 @@ class LocalSolver
             // update
             L_loc = L_loc_new;
 
-            return norm_loc;
+            return std::make_tuple(L_loc, norm_loc);
         }
 };
 
