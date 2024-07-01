@@ -1,0 +1,5 @@
+- the computational time scales with number of processes when the matrix dimension is sufficiently large
+
+- avoid implementing long methods inside the class body
+
+- well done!
